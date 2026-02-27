@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fluxograma Elara - Outlet Premium SP</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { overflow: hidden; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useCallback, useMemo } = React;
+
+
+
+// ─── Color Palette ───
+const COLORS = {
+  user: "#25D366",
+  elara: "#075E54",
+  elaraBg: "#DCF8C6",
+  decision: "#F59E0B",
+  decisionBg: "#FEF3C7",
+  system: "#6366F1",
+  systemBg: "#EEF2FF",
+  danger: "#EF4444",
+  dangerBg: "#FEE2E2",
+  success: "#10B981",
+  successBg: "#D1FAE5",
+  info: "#3B82F6",
+  infoBg: "#DBEAFE",
+  tracking: "#8B5CF6",
+  trackingBg: "#EDE9FE",
+  bg: "#ECE5DD",
+  cardBg: "#FFFFFF",
+  border: "#E5E7EB",
+  textPrimary: "#111827",
+  textSecondary: "#6B7280",
+};
+
+// ─── All Flows Data ───
+const FLOWS = [
+  {
+    id: "terms",
+    title: "Aceite de Termos",
+    section: "§11.1",
+    icon: "📋",
+    description: "Aceite obrigatório dos Termos de Uso e Privacidade antes de qualquer interação",
+    nodes: [
+      { id: "t1", type: "user", label: "Usuário inicia\nconversa", x: 50, y: 0 },
+      { id: "t2", type: "decision", label: "Já aceitou\ntermos\nanteriormente?", x: 50, y: 14 },
+      { id: "t3", type: "success", label: "Pular para\nPrimeiro Contato\n→ Fluxo: Primeiro Contato", x: 85, y: 14 },
+      { id: "t4", type: "elara", label: "Exibir resumo dos\nTermos + link da\nPolítica de Privacidade\n[ Aceito ] [ Não Aceito ]", x: 50, y: 30 },
+      { id: "t5", type: "decision", label: "Usuário\nclicou em?", x: 50, y: 46 },
+      { id: "t6", type: "success", label: "[ Aceito ]\nRegistrar no perfil\n→ Fluxo: Primeiro Contato", x: 15, y: 60 },
+      { id: "t7", type: "elara", label: "[ Não Aceito ]\nExplicar necessidade\n+ link da política\n+ reapresentar botões\n[ Aceito ] [ Não Aceito ]", x: 60, y: 60 },
+      { id: "t8", type: "decision", label: "2a tentativa:\nusuário\nclicou em?", x: 60, y: 78 },
+      { id: "t9", type: "success", label: "[ Aceito ]\nRegistrar no perfil\n→ Fluxo: Primeiro Contato", x: 25, y: 78 },
+      { id: "t10", type: "danger", label: "[ Não Aceito ]\nEncerrar conversa:\n\"Tudo bem! Se mudar\nde ideia, é só me\nchamar de novo.\"", x: 85, y: 78 },
+      { id: "t11", type: "system", label: "Regras:\n• Aceite persiste entre sessões\n• Máx 2 reapresentações\n• Nunca iniciar fluxo\n  funcional sem aceite\n• Formato: Quick Reply\n  (sem digitar texto)", x: 50, y: 100 },
+    ],
+    edges: [
+      { from: "t1", to: "t2" },
+      { from: "t2", to: "t3", label: "SIM" },
+      { from: "t2", to: "t4", label: "NÃO" },
+      { from: "t4", to: "t5" },
+      { from: "t5", to: "t6", label: "Aceito" },
+      { from: "t5", to: "t7", label: "Não Aceito" },
+      { from: "t7", to: "t8" },
+      { from: "t8", to: "t9", label: "Aceito" },
+      { from: "t8", to: "t10", label: "Não Aceito\n(2a recusa)" },
+    ],
+    conversation: [
+      { from: "system", text: "📋 Cenário 1: Aceita na primeira vez" },
+      { from: "elara", text: "Olá! Antes de começar, preciso que você aceite nossos Termos de Uso e Política de Privacidade.\n\nResumo: seus dados serão usados apenas para personalizar sua experiência no Outlet Premium São Paulo.\n\nPolítica completa: [link]\n\n[ Aceito ] [ Não Aceito ]" },
+      { from: "user", text: "[ Aceito ]" },
+      { from: "system", text: "✅ Aceite registrado no perfil\n→ Segue para: Fluxo Primeiro Contato" },
+      { from: "elara", text: "Que bom que você está no Outlet! 🏬\nO que te traz aqui hoje?\n\n[ Promoções ] [ Lojas ] [ Alimentação ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "📋 Cenário 2: Recusa, depois aceita" },
+      { from: "elara", text: "Olá! Antes de começar, preciso que você aceite nossos Termos de Uso e Política de Privacidade.\n\nResumo: seus dados serão usados apenas para personalizar sua experiência.\n\n[ Aceito ] [ Não Aceito ]" },
+      { from: "user", text: "[ Não Aceito ]" },
+      { from: "elara", text: "Para que eu possa te ajudar com nossas lojas, promoções e serviços, é importante que você concorde com a nossa Política de Privacidade.\n\nVocê pode ler a política completa aqui: [link]\n\n[ Aceito ] [ Não Aceito ]" },
+      { from: "user", text: "[ Aceito ]" },
+      { from: "system", text: "✅ Aceite registrado\n→ Segue para: Fluxo Primeiro Contato" },
+      { from: "elara", text: "Que bom que você está no Outlet! 🏬\nO que te traz aqui hoje?\n\n[ Promoções ] [ Lojas ] [ Alimentação ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "📋 Cenário 3: Dupla recusa - encerrar" },
+      { from: "elara", text: "Olá! Antes de começar, preciso que você aceite nossos Termos de Uso.\n\n[ Aceito ] [ Não Aceito ]" },
+      { from: "user", text: "[ Não Aceito ]" },
+      { from: "elara", text: "Para que eu possa te ajudar, é importante que você concorde com a nossa Política de Privacidade.\n\n[ Aceito ] [ Não Aceito ]" },
+      { from: "user", text: "[ Não Aceito ]" },
+      { from: "elara", text: "Tudo bem! Se mudar de ideia, é só me chamar de novo. 😊" },
+      { from: "system", text: "❌ Conversa encerrada (2a recusa)" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "📋 Cenário 4: Usuário retorna (já aceitou)" },
+      { from: "system", text: "✓ Aceite já registrado - pular termos\n→ Direto para: Fluxo Primeiro Contato" },
+      { from: "elara", text: "Oi de novo! Em que posso te ajudar?\n\n[ Promoções ] [ Lojas ] [ Alimentação ]" },
+    ],
+  },
+  {
+    id: "entry",
+    title: "Primeiro Contato",
+    section: "§10.1, §12.3",
+    icon: "👋",
+    description: "Fluxo de entrada do usuário na conversa",
+    nodes: [
+      { id: "e1", type: "system", label: "Usuário aceita\nTermos de Uso\n(vem do Fluxo:\nAceite de Termos)", x: 50, y: 0 },
+      { id: "e2", type: "decision", label: "Primeira interação\nou retorno > 24h?", x: 50, y: 15 },
+      { id: "e3", type: "elara", label: "Greeting completo:\n\"Olá, meu nome é Elara,\na assistente do Outlet\nPremium São Paulo\"", x: 20, y: 30 },
+      { id: "e4", type: "elara", label: "Greeting curto:\n\"Oi de novo! Em que\nposso te ajudar?\"", x: 80, y: 30 },
+      { id: "e5", type: "elara", label: "Fluxo guiado com botões:\n\"O que te traz aqui hoje?\"\n[ Promoções ] [ Lojas ] [ Alimentação ]", x: 50, y: 48 },
+      { id: "e6", type: "decision", label: "Usuário tem\nperfil salvo?", x: 50, y: 63 },
+      { id: "e7", type: "elara", label: "Personalizar com perfil:\n\"A Nike e a Adidas têm\nnovidades desde sua\núltima visita 👟\"", x: 20, y: 78 },
+      { id: "e8", type: "system", label: "→ Seguir para\nFluxo: Hierarquia\nde Objetivos", x: 50, y: 93 },
+    ],
+    edges: [
+      { from: "e1", to: "e2" },
+      { from: "e2", to: "e3", label: "SIM" },
+      { from: "e2", to: "e4", label: "NÃO" },
+      { from: "e3", to: "e5" },
+      { from: "e4", to: "e5" },
+      { from: "e5", to: "e6" },
+      { from: "e6", to: "e7", label: "SIM" },
+      { from: "e6", to: "e8", label: "NÃO" },
+      { from: "e7", to: "e8" },
+    ],
+    conversation: [
+      { from: "system", text: "👋 Cenário 1: Primeira visita" },
+      { from: "system", text: "✓ Vem do: Fluxo Aceite de Termos" },
+      { from: "elara", text: "Olá, meu nome é Elara, a assistente pessoal do Outlet Premium São Paulo! 😊" },
+      { from: "elara", text: "Que bom que você está no Outlet! 🏬\nO que te traz aqui hoje?\n\n[ Promoções ] [ Lojas ] [ Alimentação ]" },
+      { from: "user", text: "[ Promoções ]" },
+      { from: "system", text: "→ Segue para: Fluxo Hierarquia de Objetivos → Fluxo Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "👋 Cenário 2: Retorno (< 24h)" },
+      { from: "elara", text: "Oi de novo! Em que posso te ajudar? 😊\n\n[ Promoções ] [ Lojas ] [ Alimentação ]" },
+      { from: "user", text: "[ Lojas ]" },
+      { from: "system", text: "→ Segue para: Fluxo Hierarquia de Objetivos" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "👋 Cenário 3: Com perfil salvo" },
+      { from: "elara", text: "Olá, meu nome é Elara! 😊\nO que te traz aqui hoje?\n\n[ Promoções ] [ Lojas ] [ Alimentação ]" },
+      { from: "user", text: "[ Promoções ]" },
+      { from: "system", text: "👤 Perfil salvo detectado → personalizar" },
+      { from: "elara", text: "A Nike e a Adidas têm novidades desde sua última visita 👟\nQuer ver as promoções?\n\n[ Ver promoções ] [ Outra categoria ]" },
+      { from: "system", text: "→ Segue para: Fluxo Hierarquia de Objetivos" },
+    ],
+  },
+  {
+    id: "hierarchy",
+    title: "Hierarquia de Objetivos",
+    section: "§1.1",
+    icon: "🎯",
+    description: "Prioridades que guiam toda resposta da Elara",
+    nodes: [
+      { id: "h1", type: "system", label: "Mensagem do usuário\nrecebida", x: 50, y: 0 },
+      { id: "h2", type: "decision", label: "Tema é\nRESTRITO? (§18)", x: 50, y: 13 },
+      { id: "h3", type: "danger", label: "Resposta padrão\n+ redirecionamento\n→ Fluxo: Restrições\nde Conteúdo", x: 85, y: 13 },
+      { id: "h4", type: "decision", label: "Tema é\nSENSÍVEL?\n(saúde, segurança...)", x: 50, y: 28 },
+      { id: "h5", type: "elara", label: "Responder 100%\nfoco no problema\nSEM ponte comercial", x: 85, y: 28 },
+      { id: "h6", type: "decision", label: "Qual tipo\nde intenção?", x: 50, y: 43 },
+      { id: "h7", type: "success", label: "PRIORIDADE 1\nExibir anúncio/oferta\nrelevante\n(impressão comercial)", x: 15, y: 60 },
+      { id: "h8", type: "info", label: "PRIORIDADE 2\nGerar intenção\nde visita à loja\n(sem anúncio ativo)", x: 50, y: 60 },
+      { id: "h9", type: "elara", label: "PRIORIDADE 3\nInformar com\nutilidade\n(responder pergunta)", x: 85, y: 60 },
+      { id: "h10", type: "system", label: "Tentar ponte para\nPrioridade 1 ou 2\n→ Fluxo: Ponte Comercial", x: 85, y: 78 },
+      { id: "h11", type: "system", label: "→ Fluxo: Busca\ne Resultados", x: 15, y: 78 },
+    ],
+    edges: [
+      { from: "h1", to: "h2" },
+      { from: "h2", to: "h3", label: "SIM" },
+      { from: "h2", to: "h4", label: "NÃO" },
+      { from: "h4", to: "h5", label: "SIM" },
+      { from: "h4", to: "h6", label: "NÃO" },
+      { from: "h6", to: "h7", label: "Busca\nproduto/marca" },
+      { from: "h6", to: "h8", label: "Sem\nanúncio ativo" },
+      { from: "h6", to: "h9", label: "Pergunta\ninformacional" },
+      { from: "h9", to: "h10" },
+      { from: "h7", to: "h11" },
+    ],
+    conversation: [
+      { from: "system", text: "🎯 Cenário 1: Busca por produto (Prioridade 1)" },
+      { from: "user", text: "Quero ver tênis de corrida" },
+      { from: "system", text: "🎯 Intenção: busca por produto → PRIORIDADE 1 (exibir anúncio)\n→ Segue para: Fluxo Busca e Resultados" },
+      { from: "elara", text: "Separei os melhores anúncios de tênis pra você 🏃\n[Carrossel com 5 cards]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🎯 Cenário 2: Informacional (Prioridade 3)" },
+      { from: "user", text: "Qual o horário do outlet?" },
+      { from: "system", text: "🎯 Intenção: informacional → PRIORIDADE 3 (informar)\n→ Tentar: Fluxo Ponte Comercial" },
+      { from: "elara", text: "*Horário hoje:*\n🕐 9h às 21h\n\nPrecisa de mais alguma coisa? Posso te mostrar promoções 😉\n[ Ver promoções ] [ Encontrar loja ] [ Era só isso ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🎯 Cenário 3: Tema RESTRITO" },
+      { from: "user", text: "O que você acha da política?" },
+      { from: "system", text: "🎯 Tema RESTRITO detectado (§18)\n→ Segue para: Fluxo Restrições de Conteúdo" },
+      { from: "elara", text: "Não consigo te ajudar com isso, mas posso te mostrar as novidades do Outlet! ⭐\n\n[ Ver promoções ] [ Encontrar loja ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🎯 Cenário 4: Tema SENSÍVEL" },
+      { from: "user", text: "Perdi minha carteira, o que faço?" },
+      { from: "system", text: "🎯 Tema SENSÍVEL detectado → 100% foco no problema\n❌ Sem ponte comercial" },
+      { from: "elara", text: "Entendo sua preocupação! Dirija-se à administração no *Bloco 01* para registrar a ocorrência. A equipe de segurança pode te ajudar.\n\nPosso te passar o telefone da administração?" },
+    ],
+  },
+  {
+    id: "search",
+    title: "Busca e Resultados",
+    section: "§5, §6, §10.1.1",
+    icon: "🔍",
+    description: "Fluxo completo de busca por marca, categoria ou texto livre",
+    nodes: [
+      { id: "s1", type: "user", label: "Usuário faz\numa busca", x: 50, y: 0 },
+      { id: "s2", type: "system", label: "Classificar intenção\n(§6.1): categoria,\ntipo, filtro", x: 50, y: 10 },
+      { id: "s3", type: "system", label: "Aplicar Filtro\nSemântico (§6.2)\nHard Filter", x: 50, y: 20 },
+      { id: "s4", type: "decision", label: "Quantos\nresultados\nválidos?", x: 50, y: 32 },
+      { id: "s5", type: "danger", label: "ZERO resultados\n→ Fluxo: Fallback\nde Resultados", x: 10, y: 44 },
+      { id: "s6", type: "elara", label: "1 resultado\nIntro opcional (§5.2)\nExibir card direto", x: 35, y: 44 },
+      { id: "s7", type: "elara", label: "2-5 resultados\nIntro + Carrossel\ndireto", x: 60, y: 44 },
+      { id: "s8", type: "decision", label: "> 5 resultados\nRefinar?\n→ Fluxo: Paginação", x: 87, y: 44 },
+      { id: "s9", type: "elara", label: "Pergunta de\nrefinamento\n(máx 1 pergunta)", x: 87, y: 58 },
+      { id: "s10", type: "decision", label: "Resultado\nrefinado ≤ 5?", x: 87, y: 70 },
+      { id: "s11", type: "elara", label: "Exibir 5 mais\nrelevantes\n+ Paginação", x: 87, y: 82 },
+      { id: "s12", type: "system", label: "Tracking:\nad_impression\n→ Fluxo: Tracking\nde Cards", x: 50, y: 60 },
+      { id: "s13", type: "elara", label: "Botões pós-anúncio:\n[ Quero visitar ]\n[ Como chegar ]", x: 50, y: 73 },
+      { id: "s14", type: "system", label: "→ Fluxo: Inserção\nProativa ou\nFluxo: Paginação\ne Refinamento", x: 50, y: 86 },
+    ],
+    edges: [
+      { from: "s1", to: "s2" },
+      { from: "s2", to: "s3" },
+      { from: "s3", to: "s4" },
+      { from: "s4", to: "s5", label: "0" },
+      { from: "s4", to: "s6", label: "1" },
+      { from: "s4", to: "s7", label: "2-5" },
+      { from: "s4", to: "s8", label: "> 5" },
+      { from: "s8", to: "s9" },
+      { from: "s9", to: "s10" },
+      { from: "s10", to: "s7", label: "SIM" },
+      { from: "s10", to: "s11", label: "NÃO" },
+      { from: "s6", to: "s12" },
+      { from: "s7", to: "s12" },
+      { from: "s11", to: "s12" },
+      { from: "s12", to: "s13" },
+      { from: "s13", to: "s14" },
+    ],
+    conversation: [
+      { from: "system", text: "🔍 Cenário 1: Muitos resultados (> 5) → refinar" },
+      { from: "user", text: "Quero ver promoções de esportivo" },
+      { from: "system", text: "🔍 Classificação: categoria=esportivo, tipo=promoções\n✓ Filtro semântico: aceitar tênis, roupa esportiva / rejeitar óculos, bolsas\n📊 Resultados: 12 anúncios válidos (> 5 → refinar)" },
+      { from: "elara", text: "Encontrei muitas promoções de esportivo! Para ficar mais fácil, o que te interessa mais?\n\n[ Tênis ] [ Roupas ] [ Acessórios ] [ Ver destaques ]" },
+      { from: "user", text: "[ Tênis ]" },
+      { from: "system", text: "📊 Resultado refinado: 4 anúncios (≤ 5 → exibir direto)" },
+      { from: "elara", text: "Separei as melhores de tênis pra você 🏃\n[Carrossel com 4 cards]\n\n[ Quero visitar ] [ Como chegar ]" },
+      { from: "system", text: "✓ ad_impression registrado (4 anúncios)\n→ Ver: Fluxo Tracking de Cards" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🔍 Cenário 2: Poucos resultados (2-5) → direto" },
+      { from: "user", text: "Promoções da Nike" },
+      { from: "system", text: "🔍 Classificação: marca=Nike\n📊 Resultados: 3 anúncios → exibir direto" },
+      { from: "elara", text: "A *Nike* está com essas promoções 👟\n[Carrossel com 3 cards]\n\n[ Quero visitar ] [ Como chegar ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🔍 Cenário 3: Um resultado → card direto" },
+      { from: "user", text: "Tem promoção da Pandora?" },
+      { from: "system", text: "🔍 Classificação: marca=Pandora\n📊 Resultados: 1 anúncio → exibir direto" },
+      { from: "elara", text: "A *Pandora* está com esta promoção especial 💎\n[Card único com detalhes]\n\n[ Quero visitar ] [ Como chegar ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🔍 Cenário 4: Zero resultados → fallback" },
+      { from: "user", text: "Promoção de roupas de ski" },
+      { from: "system", text: "🔍 Classificação: categoria=ski\n📊 Resultados: 0 → Fluxo Fallback de Resultados" },
+      { from: "elara", text: "Não encontrei promoções de ski, mas separei opções de *esportivo* que podem servir!\n[Carrossel com 3 cards]" },
+    ],
+  },
+  {
+    id: "fallback",
+    title: "Fallback de Resultados",
+    section: "§5.2.1, §15",
+    icon: "🔄",
+    description: "Quando a busca não retorna resultados: marca, loja, categoria, informacional, busca livre",
+    nodes: [
+      // Topo
+      { id: "f1", type: "danger", label: "Busca sem\nresultado direto", x: 50, y: 0 },
+      { id: "f2", type: "decision", label: "Tipo de\nbusca?", x: 50, y: 12 },
+      // Col 1: MARCA (center x=8)
+      { id: "f3", type: "decision", label: "MARCA:\nTem loja própria\nno outlet?", x: 8, y: 28 },
+      { id: "f4", type: "elara", label: "SIM: Loja própria\nInformar localização\n+ verificar promoções", x: 2, y: 44 },
+      { id: "f5", type: "decision", label: "NÃO: Vendida em\nMULTIMARCAS?", x: 16, y: 44 },
+      { id: "f6", type: "elara", label: "SIM: Multimarcas\n\"A *Sephora* trabalha\ncom essa marca\"\n[ Como chegar ]", x: 10, y: 62 },
+      { id: "f7", type: "elara", label: "NÃO: Indisponível\n\"Essa marca não está\nno Outlet\"\n[ Ver marcas similares ]", x: 22, y: 62 },
+      { id: "f16", type: "decision", label: "Promoções no\nMESMO SEGMENTO?", x: 10, y: 80 },
+      { id: "f17", type: "elara", label: "SIM: Alternativas\nsegmento (máx 3 cards)\n- Fluxo: Busca\ne Resultados", x: 4, y: 96 },
+      // Col 2: LOJA (center x=32)
+      { id: "f18", type: "decision", label: "LOJA:\nLoja existe\nno outlet?", x: 32, y: 28 },
+      { id: "f19", type: "elara", label: "SIM: Localização\n+ promoções ativas\n- Fluxo: Apresentação\nde Lojas", x: 26, y: 44 },
+      { id: "f20", type: "elara", label: "NÃO: Sugerir lojas\ndo mesmo segmento\n[ Ver lojas do segmento ]\n[ Buscar outra loja ]", x: 38, y: 44 },
+      // Col 3: CATEGORIA (center x=54)
+      { id: "f8", type: "decision", label: "CATEGORIA:\nHá categorias\nadjacentes?", x: 54, y: 28 },
+      { id: "f9", type: "elara", label: "SIM: Promoções de\ncategorias adjacentes\n(3 cards)\n- Fluxo: Busca\ne Resultados", x: 48, y: 44 },
+      { id: "f10", type: "elara", label: "NÃO: Navegação\n[ Ver categorias ]\n[ Buscar outra coisa ]\n- Fluxo: Contextualização", x: 60, y: 44 },
+      // Col 4: INFORMACIONAL (center x=74)
+      { id: "f21", type: "decision", label: "INFORMACIONAL:\nInfo existe\nna base?", x: 74, y: 28 },
+      { id: "f22", type: "elara", label: "SIM: Responder\ncom info disponível\n- Fluxo: Ponte\nComercial", x: 68, y: 44 },
+      { id: "f23", type: "elara", label: "NÃO: \"Não tenho\nessa informação\"\n[ Lojas ] [ Promoções ]", x: 80, y: 44 },
+      // Col 5: LIVRE (center x=94)
+      { id: "f11", type: "decision", label: "LIVRE:\nPossível inferir\nsegmento?", x: 94, y: 28 },
+      { id: "f12", type: "system", label: "SIM: Tratar como\ncategoria inferida\n- Fluxo: Busca\ne Resultados", x: 88, y: 44 },
+      { id: "f13", type: "elara", label: "NÃO: Fluxo guiado\n\"Para qual ocasião?\"\n+ botões\n- Fluxo: Contextualização", x: 100, y: 44 },
+      // Fundo: ZERO anúncios
+      { id: "f14", type: "system", label: "ZERO anúncios\nno outlet inteiro", x: 54, y: 82 },
+      { id: "f15", type: "elara", label: "\"Não tenho promoções\nagora, mas posso ajudar\"\n[ Ver lojas ] [ Horário ] [ Mapa ]\n- Fluxo: Apresentação de Lojas", x: 54, y: 98 },
+    ],
+    edges: [
+      { from: "f1", to: "f2" },
+      { from: "f2", to: "f3", label: "Marca" },
+      { from: "f2", to: "f18", label: "Loja" },
+      { from: "f2", to: "f8", label: "Categoria" },
+      { from: "f2", to: "f21", label: "Informacional" },
+      { from: "f2", to: "f11", label: "Livre" },
+      // Marca (bifurcado)
+      { from: "f3", to: "f4", label: "SIM" },
+      { from: "f3", to: "f5", label: "NÃO" },
+      { from: "f5", to: "f6", label: "SIM" },
+      { from: "f5", to: "f7", label: "NÃO" },
+      { from: "f4", to: "f16" },
+      { from: "f6", to: "f16" },
+      { from: "f7", to: "f16" },
+      { from: "f16", to: "f17", label: "SIM" },
+      { from: "f16", to: "f14", label: "NÃO" },
+      // Loja (bifurcado)
+      { from: "f18", to: "f19", label: "SIM" },
+      { from: "f18", to: "f20", label: "NÃO" },
+      // Categoria (bifurcado)
+      { from: "f8", to: "f9", label: "SIM" },
+      { from: "f8", to: "f10", label: "NÃO" },
+      // Informacional (bifurcado)
+      { from: "f21", to: "f22", label: "SIM" },
+      { from: "f21", to: "f23", label: "NÃO" },
+      // Livre (bifurcado)
+      { from: "f11", to: "f12", label: "SIM" },
+      { from: "f11", to: "f13", label: "NÃO" },
+      // NÃO paths convergem para Zero
+      { from: "f10", to: "f14" },
+      { from: "f20", to: "f14" },
+      { from: "f23", to: "f14" },
+      { from: "f14", to: "f15" },
+    ],
+    conversation: [
+      { from: "user", text: "Tem promoção da Chanel?" },
+      { from: "system", text: "🔄 Tipo: MARCA\n❌ Chanel sem loja própria no outlet\n🔍 Vendida em multimarcas? SIM - Sephora" },
+      { from: "elara", text: "Não achei ofertas da *Chanel* agora, mas a *Sephora* (Bloco 03, Loja 71) trabalha com essa marca 🔍\n\n[ Como chegar na Sephora ] [ Outra marca ] [ Ver perfumaria ]" },
+      { from: "system", text: "→ [ Como chegar ] → Fluxo: Apresentação de Lojas\n→ [ Ver perfumaria ] → Fluxo: Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "user", text: "Quero ver relógios Rolex" },
+      { from: "system", text: "🔄 Tipo: MARCA\n❌ Rolex sem loja própria\n❌ Não vendida em multimarcas\n🔍 Promoções no segmento relojoaria? SIM" },
+      { from: "elara", text: "A *Rolex* não está no Outlet Premium, mas separei promoções de relojoaria pra você!\n[Carrossel com 3 cards: Fossil, Technos, Vivara]\n\n[ Quero visitar ] [ Buscar outra marca ]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "user", text: "Onde fica a Nike?" },
+      { from: "system", text: "🔄 Tipo: LOJA\n✓ Nike existe no outlet → localização + promoções" },
+      { from: "elara", text: "A *Nike* fica no *Bloco 04, Loja 130* 📍\nE está com promoções ativas! Quer ver?\n\n[ Ver promoções ] [ Como chegar ]" },
+      { from: "system", text: "→ Segue para: Fluxo Apresentação de Lojas" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "user", text: "Onde fica a loja da Gucci?" },
+      { from: "system", text: "🔄 Tipo: LOJA\n❌ Gucci não existe no outlet\n🔍 Sugerindo lojas do mesmo segmento (luxo)" },
+      { from: "elara", text: "Não encontrei a *Gucci* no Outlet Premium. Mas tem lojas de moda luxo que podem te interessar!\n\n[ Ver lojas de luxo ] [ Buscar outra loja ]" },
+      { from: "system", text: "→ [ Ver lojas de luxo ] → Fluxo: Apresentação de Lojas" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "user", text: "Tem promoção de roupa de yoga?" },
+      { from: "system", text: "🔄 Tipo: CATEGORIA\n❌ Sem resultado direto para 'yoga'\n🔍 Categorias adjacentes? SIM → esportivo, fitness" },
+      { from: "elara", text: "Não encontrei promoções específicas de yoga, mas separei opções de *esportivo e fitness* que podem servir!\n[Carrossel com 3 cards]\n\n[ Quero visitar ] [ Buscar outra categoria ]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "user", text: "Qual o wifi do outlet?" },
+      { from: "system", text: "🔄 Tipo: INFORMACIONAL\n❌ Info não disponível na base" },
+      { from: "elara", text: "Não tenho essa informação, mas posso te ajudar com outras coisas!\n\n[ Ver promoções ] [ Encontrar loja ] [ Horário ]" },
+      { from: "system", text: "→ [ Ver promoções ] → Fluxo: Busca e Resultados\n→ [ Encontrar loja ] → Fluxo: Apresentação de Lojas" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "user", text: "Quero algo legal" },
+      { from: "system", text: "🔄 Tipo: LIVRE\n❌ Não é possível inferir segmento\n→ Fluxo guiado" },
+      { from: "elara", text: "Para qual ocasião seria?\n\n[ Presente ] [ Dia a dia ] [ Esporte ] [ Trabalho ]" },
+      { from: "system", text: "→ Segue para: Fluxo Contextualização" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🔄 Cenário 8: MARCA - SIM loja própria" },
+      { from: "user", text: "Tem promoção da Nike?" },
+      { from: "system", text: "🔄 Tipo: MARCA\n✓ Nike tem loja própria no outlet → localização + promoções" },
+      { from: "elara", text: "A *Nike* tem loja própria no Outlet! Fica no *Bloco 04, Loja 130* 📍\nE está com promoções ativas:\n[Carrossel com 3 cards]\n\n[ Quero visitar ] [ Como chegar ]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🔄 Cenário 9: CATEGORIA - NÃO tem adjacentes" },
+      { from: "user", text: "Tem promoção de instrumentos musicais?" },
+      { from: "system", text: "🔄 Tipo: CATEGORIA\n❌ Sem resultado para 'instrumentos musicais'\n❌ Sem categorias adjacentes\n→ Navegação guiada" },
+      { from: "elara", text: "Não encontrei promoções de instrumentos musicais. Quer explorar outras categorias?\n\n[ Ver categorias ] [ Buscar outra coisa ]" },
+      { from: "system", text: "→ Segue para: Fluxo Contextualização" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🔄 Cenário 10: INFORMACIONAL - SIM existe na base" },
+      { from: "user", text: "Qual o horário do outlet amanhã?" },
+      { from: "system", text: "🔄 Tipo: INFORMACIONAL\n✓ Info disponível na base" },
+      { from: "elara", text: "*Horário de amanhã:*\n🕐 9h às 21h\n\nPrecisa de mais alguma coisa? Posso te mostrar promoções 😉\n\n[ Ver promoções ] [ Encontrar loja ] [ Era só isso ]" },
+      { from: "system", text: "→ Segue para: Fluxo Ponte Comercial" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🔄 Cenário 11: LIVRE - SIM consegue inferir segmento" },
+      { from: "user", text: "Quero algo pra correr" },
+      { from: "system", text: "🔄 Tipo: LIVRE\n✓ Inferência: 'correr' → segmento esportivo\n→ Tratar como categoria" },
+      { from: "elara", text: "Separei promoções de *esportivo* que são ótimas pra corrida 🏃\n[Carrossel com 4 cards]\n\n[ Quero visitar ] [ Como chegar ]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados" },
+    ],
+  },
+  {
+    id: "pagination",
+    title: "Paginação e Refinamento",
+    section: "§10.1.1",
+    icon: "📄",
+    description: "Regras de \"ver mais\" com limite de 3 páginas (15 resultados)",
+    nodes: [
+      { id: "p1", type: "system", label: "Resultado > 5 itens\napós refinamento", x: 50, y: 0 },
+      { id: "p2", type: "elara", label: "PÁGINA 1\nExibir 5 mais\nrelevantes\n+ \"Quer ver mais?\"", x: 50, y: 14 },
+      { id: "p3", type: "decision", label: "Usuário clica\n\"Quer ver mais\"?", x: 50, y: 30 },
+      { id: "p4", type: "elara", label: "PÁGINA 2\nExibir próximos 5\n+ \"Quer ver mais?\"", x: 30, y: 44 },
+      { id: "p5", type: "system", label: "→ Fluxo: Contextualização\n(outra categoria)\nou Fluxo: Coleta\nde NPS (era só isso)", x: 75, y: 44 },
+      { id: "p6", type: "decision", label: "Usuário clica\n\"Quer ver mais\"\nnovamente?", x: 30, y: 58 },
+      { id: "p7", type: "elara", label: "PÁGINA 3 (ÚLTIMA)\nExibir próximos 5\n\"Esses são todos!\"", x: 15, y: 73 },
+      { id: "p8", type: "elara", label: "Encerrar paginação:\n\"Quer refinar a busca\nou ver outra categoria?\"\n[ Refinar ] [ Outra ] [ Pronto ]", x: 15, y: 90 },
+    ],
+    edges: [
+      { from: "p1", to: "p2" },
+      { from: "p2", to: "p3" },
+      { from: "p3", to: "p4", label: "SIM" },
+      { from: "p3", to: "p5", label: "NÃO" },
+      { from: "p4", to: "p6" },
+      { from: "p6", to: "p7", label: "SIM" },
+      { from: "p6", to: "p5", label: "NÃO" },
+      { from: "p7", to: "p8" },
+    ],
+    conversation: [
+      { from: "system", text: "📄 Cenário 1: Usuário vê todas as 3 páginas" },
+      { from: "system", text: "📊 12 resultados para \"esportivo\" após refinamento" },
+      { from: "elara", text: "Separei as melhores de esportivo 🏃\n[Carrossel com 5 cards]\nEssas são as principais! Quer ver mais?\n\n[ Sim, mais ofertas ] [ Outra categoria ] [ Era só isso ]" },
+      { from: "user", text: "[ Sim, mais ofertas ]" },
+      { from: "elara", text: "Mais opções de esportivo pra você:\n[Carrossel com 5 cards]\nQuer ver mais?\n\n[ Sim, mais ofertas ] [ Outra categoria ] [ Era só isso ]" },
+      { from: "user", text: "[ Sim, mais ofertas ]" },
+      { from: "elara", text: "As últimas opções de esportivo:\n[Carrossel com 2 cards]\n\nEsses são todos que tenho! Quer refinar a busca ou ver outra categoria?\n\n[ Refinar busca ] [ Outra categoria ] [ Era só isso ]" },
+      { from: "system", text: "→ [ Refinar busca ] → Fluxo: Busca e Resultados\n→ [ Outra categoria ] → Fluxo: Contextualização\n→ [ Era só isso ] → Fluxo: Coleta de NPS (se 3+ interações)" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "📄 Cenário 2: Usuário para na página 1" },
+      { from: "system", text: "📊 8 resultados para \"moda feminina\"" },
+      { from: "elara", text: "Separei as melhores de moda feminina 👗\n[Carrossel com 5 cards]\nQuer ver mais?\n\n[ Sim, mais ofertas ] [ Outra categoria ] [ Era só isso ]" },
+      { from: "user", text: "[ Era só isso ]" },
+      { from: "system", text: "→ Fluxo: Contextualização (outra categoria) ou Fluxo: Coleta de NPS" },
+    ],
+  },
+  {
+    id: "proactive",
+    title: "Inserção Proativa",
+    section: "§5.8",
+    icon: "💡",
+    description: "Quando a Elara insere anúncios proativamente na conversa",
+    nodes: [
+      { id: "pr1", type: "system", label: "Momento oportuno\ndetectado\n(localização, categoria,\nocasião)", x: 50, y: 0 },
+      { id: "pr2", type: "decision", label: "Existem anúncios\nativos RELACIONADOS\nao contexto?", x: 50, y: 16 },
+      { id: "pr3", type: "elara", label: "Ponte natural\n+ oferecer carrossel\n[ Sim, mostra! ]\n[ Só a localização ]", x: 15, y: 32 },
+      { id: "pr4", type: "decision", label: "Anúncios no\nMESMO SEGMENTO?", x: 55, y: 32 },
+      { id: "pr5", type: "elara", label: "Ponte com segmento\n\"Não achei da Nike,\nmas tem esportivo\"\n[ Sim! ] [ Não ]", x: 40, y: 48 },
+      { id: "pr6", type: "elara", label: "Resposta normal\nSEM inserção\ncomercial\n\"Precisa de mais\nalguma coisa?\"", x: 75, y: 48 },
+      { id: "pr7", type: "decision", label: "Usuário\naceitou?", x: 15, y: 50 },
+      { id: "pr8", type: "success", label: "Exibir carrossel\n→ Fluxo: Busca\ne Resultados", x: 5, y: 66 },
+      { id: "pr9", type: "danger", label: "Respeitar recusa\nNÃO insistir\nnesta troca", x: 25, y: 66 },
+      { id: "pr10", type: "system", label: "Regras:\n• Máx 1 inserção por troca\n• Nunca em erro/frustração\n• Nunca irrelevante\n• Próxima troca: pode tentar\n  novamente", x: 50, y: 82 },
+    ],
+    edges: [
+      { from: "pr1", to: "pr2" },
+      { from: "pr2", to: "pr3", label: "SIM" },
+      { from: "pr2", to: "pr4", label: "NÃO" },
+      { from: "pr4", to: "pr5", label: "SIM" },
+      { from: "pr4", to: "pr6", label: "NÃO" },
+      { from: "pr3", to: "pr7" },
+      { from: "pr7", to: "pr8", label: "SIM" },
+      { from: "pr7", to: "pr9", label: "NÃO" },
+    ],
+    conversation: [
+      { from: "system", text: "💡 Cenário 1: Promoção direta aceita" },
+      { from: "user", text: "Onde fica a Nike?" },
+      { from: "system", text: "💡 Momento oportuno: pergunta sobre localização de loja\n🔍 Verificando anúncios da Nike...\n✓ Nike tem 3 promoções ativas" },
+      { from: "elara", text: "A *Nike* fica no *Bloco 04, Loja 130* 📍\nE olha, ela está com promoções agora! Quer ver?\n\n[ Sim, mostra! ] [ Só a localização ]" },
+      { from: "user", text: "[ Sim, mostra! ]" },
+      { from: "elara", text: "A *Nike* está com essas promoções agora 👟\n[Carrossel com 3 cards]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "💡 Cenário 2: Usuário recusa promoção" },
+      { from: "user", text: "Onde fica a Adidas?" },
+      { from: "system", text: "💡 Momento oportuno\n✓ Adidas tem 2 promoções ativas" },
+      { from: "elara", text: "A *Adidas* fica no *Bloco 04, Loja 127* 📍\nEla está com promoções! Quer ver?\n\n[ Sim, mostra! ] [ Só a localização ]" },
+      { from: "user", text: "[ Só a localização ]" },
+      { from: "system", text: "⚠️ Recusa respeitada - NÃO insistir nesta troca" },
+      { from: "elara", text: "Sem problemas! A Adidas fica no Bloco 04, Loja 127. Precisa de mais alguma coisa?" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "💡 Cenário 3: Sem promoções → resposta normal" },
+      { from: "user", text: "Onde fica a Havaianas?" },
+      { from: "system", text: "💡 Verificando anúncios...\n❌ Sem anúncios ativos e sem segmento próximo" },
+      { from: "elara", text: "A *Havaianas* fica no *Bloco 02, Loja 45* 📍\nPrecisa de mais alguma coisa?\n\n[ Ver promoções ] [ Outra loja ] [ Era só isso ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "💡 Cenário 4: Sem anúncio direto, mas segmento tem" },
+      { from: "user", text: "Onde fica a Asics?" },
+      { from: "system", text: "💡 Verificando anúncios Asics...\n❌ Sem anúncio direto\n🔍 Segmento esportivo tem promoções? SIM" },
+      { from: "elara", text: "A *Asics* fica no *Bloco 03, Loja 89* 📍\nNão achei promoções da Asics, mas tem ofertas de *esportivo* que podem te interessar!\n\n[ Sim, mostra! ] [ Não, obrigado ]" },
+      { from: "user", text: "[ Sim, mostra! ]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados" },
+    ],
+  },
+  {
+    id: "bridge",
+    title: "Ponte Comercial",
+    section: "§8.1",
+    icon: "🌉",
+    description: "Ponte comercial após respostas informacionais (horário, estacionamento)",
+    nodes: [
+      { id: "b1", type: "user", label: "Pergunta\ninformacional\n(horário, estac.)", x: 50, y: 0 },
+      { id: "b2", type: "elara", label: "Responder a\npergunta\ncompletamente\n(Prioridade 3)", x: 50, y: 14 },
+      { id: "b3", type: "decision", label: "Tema é\nSENSÍVEL?\n(acessibilidade,\nsegurança...)", x: 50, y: 29 },
+      { id: "b4", type: "danger", label: "NÃO fazer ponte\nFoco 100% no problema\n\"Como posso ajudar\nmais com isso?\"", x: 85, y: 29 },
+      { id: "b5", type: "decision", label: "Anúncio\nrelacionado\nao tema?\n→ Fluxo: Rotação\ne Fadiga", x: 50, y: 44 },
+      { id: "b6", type: "elara", label: "Ponte direta:\n\"A propósito, o\nSpoleto tem combo\nespecial! Quer ver?\"", x: 10, y: 59 },
+      { id: "b7", type: "elara", label: "Ponte adjacente:\n\"Tem restaurantes com\npromoções na praça!\nQuer ver?\"", x: 35, y: 59 },
+      { id: "b8", type: "elara", label: "CTA genérico:\n\"Posso te mostrar\npromoções ou ajudar\na encontrar loja 😉\"\n[ Promoções ] [ Loja ] [ Só isso ]", x: 60, y: 59 },
+      { id: "b9", type: "elara", label: "CTA informacional:\n\"Posso ajudar\ncom mais alguma\ncoisa?\"\n[ Loja ] [ Mapa ] [ Só isso ]", x: 85, y: 59 },
+      { id: "b10", type: "system", label: "Regra: apenas 1 mecanismo\npor mensagem\n(proativa OU ponte,\nnunca ambos)", x: 50, y: 80 },
+    ],
+    edges: [
+      { from: "b1", to: "b2" },
+      { from: "b2", to: "b3" },
+      { from: "b3", to: "b4", label: "SIM" },
+      { from: "b3", to: "b5", label: "NÃO" },
+      { from: "b5", to: "b6", label: "Direto" },
+      { from: "b5", to: "b7", label: "Adjacente" },
+      { from: "b5", to: "b8", label: "Nenhum\nrelacionado" },
+      { from: "b5", to: "b9", label: "ZERO\nanúncios" },
+    ],
+    conversation: [
+      { from: "user", text: "Onde fica a praça de alimentação?" },
+      { from: "elara", text: "A praça de alimentação fica no *Bloco 06* 🍽️\n\nE por falar nisso, tem restaurantes com promoções na praça! Quer ver?\n\n[ Sim, mostra! ] [ Não, obrigado ]" },
+      { from: "system", text: "→ [ Sim, mostra! ] → Fluxo: Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "user", text: "Perdi minha criança, preciso de ajuda!" },
+      { from: "system", text: "⚠️ Tema SENSÍVEL detectado → NÃO fazer ponte comercial" },
+      { from: "elara", text: "Entendo sua preocupação! Dirija-se imediatamente à administração do Outlet, no *Bloco 01* 📍\n\nA equipe de segurança pode ajudar a localizar sua criança. Posso te passar o telefone da administração?" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🌉 Cenário 3: Ponte direta (anúncio exato)" },
+      { from: "user", text: "Tem restaurante bom na praça?" },
+      { from: "system", text: "🌉 Responder pergunta + anúncio DIRETO relacionado" },
+      { from: "elara", text: "Sim, a praça tem várias opções! A propósito, o *Spoleto* está com combo especial agora 🍝\nQuer ver?\n\n[ Sim, mostra! ] [ Não, obrigado ]" },
+      { from: "user", text: "[ Sim, mostra! ]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🌉 Cenário 4: CTA genérico (sem anúncio relacionado)" },
+      { from: "user", text: "Qual o horário do outlet?" },
+      { from: "system", text: "🌉 Pergunta informacional\n❌ Sem anúncios relacionados ao tema\n→ CTA genérico" },
+      { from: "elara", text: "*Horário hoje:*\n🕐 9h às 21h\n\nPosso te mostrar promoções ou ajudar a encontrar uma loja 😉\n\n[ Promoções ] [ Encontrar loja ] [ Era só isso ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🌉 Cenário 5: CTA informacional (ZERO anúncios)" },
+      { from: "user", text: "Onde estacionar?" },
+      { from: "system", text: "🌉 Pergunta informacional\n❌ ZERO anúncios no outlet\n→ CTA informacional" },
+      { from: "elara", text: "O estacionamento fica na entrada principal, com acesso pelo Bloco 01 🅿️\n\nPosso ajudar com mais alguma coisa?\n\n[ Encontrar loja ] [ Ver mapa ] [ Era só isso ]" },
+    ],
+  },
+  {
+    id: "fatigue",
+    title: "Rotação e Fadiga",
+    section: "§5.9",
+    icon: "🔄",
+    description: "Controle de frequência e rotação de anúncios por usuário",
+    nodes: [
+      { id: "fa1", type: "system", label: "Anúncio candidato\na exibição", x: 50, y: 0 },
+      { id: "fa2", type: "decision", label: "Usuário pediu\nexplicitamente\npara ver de novo?", x: 50, y: 14 },
+      { id: "fa3", type: "success", label: "Exibir mesmo\nque exceda\nlimites\n(exceção)", x: 85, y: 14 },
+      { id: "fa4", type: "decision", label: "Limites de\nfrequência:\n1x/conversa\n2x/dia, 4x/7dias?", x: 50, y: 30 },
+      { id: "fa5", type: "success", label: "OK exibir\n→ Fluxo: Busca\ne Resultados", x: 20, y: 30 },
+      { id: "fa6", type: "decision", label: "Existem outros\nanúncios NÃO\nvistos?", x: 50, y: 46 },
+      { id: "fa7", type: "elara", label: "Substituir por\nanúncios não vistos", x: 30, y: 60 },
+      { id: "fa8", type: "system", label: "Não exibir anúncio\n→ Fluxo: Apresentação\nde Lojas (Prioridade 2)\nou Fluxo: Ponte\nComercial (Prioridade 3)", x: 70, y: 60 },
+      { id: "fa9", type: "tracking", label: "Limites:\n• Mesmo anúncio: 1x/conversa\n• Mesmo anúncio: 2x/dia\n• Mesmo anúncio: 4x/7dias\n• Mesma loja: 3 anúncios\n  diferentes/conversa", x: 50, y: 80 },
+    ],
+    edges: [
+      { from: "fa1", to: "fa2" },
+      { from: "fa2", to: "fa3", label: "SIM" },
+      { from: "fa2", to: "fa4", label: "NÃO" },
+      { from: "fa4", to: "fa5", label: "Dentro\ndo limite" },
+      { from: "fa4", to: "fa6", label: "Excedeu\nlimite" },
+      { from: "fa6", to: "fa7", label: "SIM" },
+      { from: "fa6", to: "fa8", label: "NÃO" },
+    ],
+    conversation: [
+      { from: "system", text: "📊 Verificando limites para anúncio Nike #12:\n• Exibido 1x nesta conversa ❌ (limite: 1x)\n• Exibido 1x hoje ✓\n• Exibido 2x em 7 dias ✓" },
+      { from: "system", text: "⚠️ Limite atingido! Buscando substitutos..." },
+      { from: "system", text: "✓ Adidas #7 e Puma #3 não vistos → substituir\n→ Segue para: Fluxo Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🔄 Cenário 2: Limite excedido, com substitutos" },
+      { from: "user", text: "Me mostra aquela promoção da Nike de novo" },
+      { from: "system", text: "✓ Pedido EXPLÍCITO → exceção de fadiga ativada" },
+      { from: "elara", text: "Claro! Aqui está a promoção da *Nike*:\n[Card do anúncio Nike #12]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🔄 Cenário 3: Limite excedido, sem substitutos" },
+      { from: "system", text: "📊 Verificando: todos os anúncios esportivos já foram vistos\n❌ Limite atingido + sem substitutos\n→ Não exibir anúncio" },
+      { from: "system", text: "→ Fluxo: Apresentação de Lojas (Prioridade 2) ou Fluxo: Ponte Comercial" },
+    ],
+  },
+  {
+    id: "stores",
+    title: "Apresentação de Lojas",
+    section: "§7",
+    icon: "🏪",
+    description: "Como a Elara apresenta lojas (priorizando anunciantes)",
+    nodes: [
+      { id: "st1", type: "user", label: "Usuário busca\nlojas (não promoções)", x: 50, y: 0 },
+      { id: "st2", type: "decision", label: "Busca direta\n(1 loja) ou\ncategoria?", x: 50, y: 14 },
+      { id: "st3", type: "decision", label: "LOJA ÚNICA:\nTem anúncio ativo?", x: 20, y: 30 },
+      { id: "st4", type: "elara", label: "Localização +\n\"Quer ver as\npromoções?\"", x: 8, y: 46 },
+      { id: "st5", type: "decision", label: "Há anúncios\nno segmento?", x: 32, y: 46 },
+      { id: "st6", type: "elara", label: "Localização +\n\"Mas tenho promoções\nde segmento.\nQuer ver?\"", x: 22, y: 62 },
+      { id: "st7", type: "elara", label: "Localização +\n\"Se for até a loja,\npode encontrar\nalgo especial!\"", x: 40, y: 62 },
+      { id: "st8", type: "decision", label: "LISTA:\nAlguma loja tem\nanúncio?", x: 75, y: 30 },
+      { id: "st9", type: "elara", label: "Anunciantes PRIMEIRO\ncom ⭐ + CTA promoções\n\"Quer ver promoções\nda Nike ou Adidas?\"", x: 62, y: 46 },
+      { id: "st10", type: "elara", label: "Lista normal +\n\"Quer saber mais\nde alguma?\"", x: 88, y: 46 },
+      { id: "st11", type: "system", label: "Limite: máx 5 lojas\nSe > 5: priorizar\nanunciantes + \"Ver mais?\"", x: 75, y: 65 },
+    ],
+    edges: [
+      { from: "st1", to: "st2" },
+      { from: "st2", to: "st3", label: "1 loja" },
+      { from: "st2", to: "st8", label: "Categoria" },
+      { from: "st3", to: "st4", label: "SIM" },
+      { from: "st3", to: "st5", label: "NÃO" },
+      { from: "st5", to: "st6", label: "SIM" },
+      { from: "st5", to: "st7", label: "NÃO" },
+      { from: "st8", to: "st9", label: "SIM" },
+      { from: "st8", to: "st10", label: "NÃO" },
+      { from: "st9", to: "st11" },
+      { from: "st10", to: "st11" },
+    ],
+    conversation: [
+      { from: "system", text: "🏪 Cenário 1: Lista de lojas por categoria" },
+      { from: "user", text: "Quais lojas de moda esportiva?" },
+      { from: "system", text: "🏪 Categoria: esportiva\n📊 5 lojas encontradas, 2 com promoções → anunciantes primeiro" },
+      { from: "elara", text: "Achei essas lojas de *moda esportiva* 🏃\n\n• ⭐ *Nike*, Bloco 04, Loja 130 (com promoções!)\n• ⭐ *Adidas*, Bloco 04, Loja 127 (com promoções!)\n• *Asics*, Bloco 03, Loja 89\n\nQuer ver as promoções da Nike ou Adidas?\n\n[ Promoções Nike ] [ Promoções Adidas ] [ Saber mais ]" },
+      { from: "system", text: "→ [ Promoções Nike/Adidas ] → Fluxo: Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🏪 Cenário 2: Loja única COM promoção" },
+      { from: "user", text: "Onde fica a Swarovski?" },
+      { from: "system", text: "🏪 Loja única: Swarovski\n✓ Tem anúncio ativo → oferecer promoções" },
+      { from: "elara", text: "A *Swarovski* fica no *Bloco 02, Loja 55* 📍\nE ela está com promoções especiais! Quer ver?\n\n[ Ver promoções ] [ Só a localização ]" },
+      { from: "system", text: "→ [ Ver promoções ] → Fluxo: Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🏪 Cenário 3: Loja única SEM promoção, mas segmento tem" },
+      { from: "user", text: "Onde fica a Asics?" },
+      { from: "system", text: "🏪 Loja única: Asics\n❌ Sem anúncio ativo\n🔍 Segmento esportivo tem promoções → oferecer" },
+      { from: "elara", text: "A *Asics* fica no *Bloco 03, Loja 89* 📍\nEla não está com promoções agora, mas tem ofertas no segmento esportivo. Quer ver?\n\n[ Ver esportivo ] [ Só a localização ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🏪 Cenário 4: Loja SEM promoção, segmento SEM promoção" },
+      { from: "user", text: "Onde fica a Melissa?" },
+      { from: "system", text: "🏪 Loja única: Melissa\n❌ Sem anúncio ativo\n❌ Segmento calçados sem promoções → mensagem motivacional" },
+      { from: "elara", text: "A *Melissa* fica no *Bloco 03, Loja 78* 📍\nEla não está com promoções no momento, mas se for até a loja, pode encontrar algo especial!\n\nPrecisa de mais alguma coisa?\n\n[ Ver lojas ] [ Promoções ] [ Era só isso ]" },
+    ],
+  },
+  {
+    id: "reengagement",
+    title: "Reengajamento",
+    section: "§17.2",
+    icon: "⏰",
+    description: "Comportamento da Elara durante inatividade do usuário",
+    nodes: [
+      { id: "r1", type: "system", label: "Inatividade\ndetectada", x: 50, y: 0 },
+      { id: "r2", type: "decision", label: "Quanto\ntempo?", x: 50, y: 12 },
+      { id: "r3", type: "decision", label: "5 MIN:\nExiste contexto\nda conversa?", x: 25, y: 26 },
+      { id: "r4", type: "decision", label: "5 MIN PÓS-TERMOS:\nExistem anúncios\ndisponíveis?", x: 75, y: 26 },
+      { id: "r5", type: "decision", label: "Anúncios NÃO VISTOS\nno segmento?\n→ Fluxo: Rotação\ne Fadiga", x: 15, y: 42 },
+      { id: "r6", type: "elara", label: "Oferta contextual:\n\"Achei mais ofertas\nde esportivo 🏃\"\n+ carrossel (3 cards)", x: 5, y: 58 },
+      { id: "r7", type: "decision", label: "Fadiga?", x: 30, y: 42 },
+      { id: "r8", type: "elara", label: "Informacional:\n\"Posso ajudar com\nmais alguma coisa?\"\n[ Promoções ] [ Loja ] [ Pronto ]", x: 30, y: 58 },
+      { id: "r9", type: "elara", label: "Com anúncios:\n\"Dá uma olhada nas\npromoções ⭐\"\n[ Promoções ] [ Loja ] [ Horário ]", x: 65, y: 42 },
+      { id: "r10", type: "elara", label: "Sem anúncios:\n\"Posso ajudar a\nencontrar lojas 😊\"\n[ Loja ] [ Mapa ] [ Horário ]", x: 87, y: 42 },
+      { id: "r11", type: "danger", label: "10 MIN (qualquer):\n\"Vou encerrar por aqui,\nmais é só me chamar 😊\"\n[ Voltar às promoções ]\n[ Ver lojas ]", x: 50, y: 78 },
+      { id: "r12", type: "system", label: "Nova mensagem\ndo usuário\n→ Fluxo: Gestão\nde Contexto\n(sem repetir greeting\nou termos)", x: 50, y: 93 },
+    ],
+    edges: [
+      { from: "r1", to: "r2" },
+      { from: "r2", to: "r3", label: "5 min\n(com conversa)" },
+      { from: "r2", to: "r4", label: "5 min\n(pós-termos)" },
+      { from: "r2", to: "r11", label: "10 min" },
+      { from: "r3", to: "r5", label: "SIM" },
+      { from: "r3", to: "r4", label: "NÃO" },
+      { from: "r5", to: "r6", label: "SIM" },
+      { from: "r5", to: "r7", label: "NÃO" },
+      { from: "r7", to: "r8", label: "SIM" },
+      { from: "r7", to: "r6", label: "NÃO" },
+      { from: "r4", to: "r9", label: "SIM" },
+      { from: "r4", to: "r10", label: "NÃO" },
+      { from: "r11", to: "r12" },
+    ],
+    conversation: [
+      { from: "system", text: "⏰ Cenário 1: 5min com contexto + ofertas do segmento" },
+      { from: "system", text: "⏰ 5 minutos de inatividade detectados\nContexto: buscou \"esportivo\" anteriormente\n🔍 Anúncios não vistos no segmento? SIM" },
+      { from: "elara", text: "Enquanto isso, achei mais ofertas de *esportivo* que podem te interessar 🏃\n[Carrossel com 3 cards]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "⏰ Cenário 2: 5min pós-termos + com anúncios" },
+      { from: "system", text: "⏰ 5 minutos de inatividade\nContexto: aceitou termos mas não interagiu\n🔍 Anúncios disponíveis? SIM" },
+      { from: "elara", text: "Dá uma olhada nas promoções do Outlet ⭐\n\n[ Promoções ] [ Encontrar loja ] [ Horário ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "⏰ Cenário 3: 5min pós-termos + sem anúncios" },
+      { from: "system", text: "⏰ 5 minutos de inatividade\nContexto: aceitou termos mas não interagiu\n❌ ZERO anúncios disponíveis" },
+      { from: "elara", text: "Posso ajudar a encontrar lojas ou informações sobre o Outlet 😊\n\n[ Encontrar loja ] [ Ver mapa ] [ Horário ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "⏰ Cenário 4: 10min timeout" },
+      { from: "system", text: "⏰ 10 minutos de inatividade total" },
+      { from: "elara", text: "Vou encerrar nossa conversa por aqui, mas é só me chamar quando precisar 😊\n\n[ Voltar às promoções ] [ Ver lojas ]" },
+      { from: "system", text: "→ [ Voltar às promoções ] → Fluxo: Busca e Resultados\n→ [ Ver lojas ] → Fluxo: Apresentação de Lojas\n→ Nova mensagem → Fluxo: Gestão de Contexto" },
+    ],
+  },
+  {
+    id: "restrictions",
+    title: "Restrições de Conteúdo",
+    section: "§18",
+    icon: "🚫",
+    description: "Temas e comportamentos proibidos para a Elara",
+    nodes: [
+      { id: "x1", type: "user", label: "Mensagem do\nusuário", x: 50, y: 0 },
+      { id: "x2", type: "decision", label: "Tema\nproibido?", x: 50, y: 14 },
+      { id: "x3", type: "danger", label: "Política / Religião\n→ Recusar educadamente\n+ redirecionar", x: 10, y: 32 },
+      { id: "x4", type: "danger", label: "Outros shoppings\n/ concorrentes\n→ \"Só ajudo com\no Outlet Premium\"", x: 30, y: 32 },
+      { id: "x5", type: "danger", label: "Opiniões sobre\nmarcas\n→ \"Não dou opinião,\nmas posso mostrar\"", x: 50, y: 32 },
+      { id: "x6", type: "danger", label: "Info médica /\njurídica / financeira\n→ \"Consulte um\nprofissional\"", x: 70, y: 32 },
+      { id: "x7", type: "danger", label: "Provocações /\ninsultos\n→ Ignorar e\nredirecionar", x: 90, y: 32 },
+      { id: "x8", type: "elara", label: "Resposta padrão:\n1. Educada e breve\n2. Redirecionar ao\n   escopo do Outlet\n3. NUNCA ignorar\n   em silêncio", x: 50, y: 52 },
+      { id: "x9", type: "elara", label: "\"Não consigo te\najudar com isso,\nmas posso te mostrar\nas promoções! ⭐\"\n[ Promoções ] [ Loja ] [ Horário ]", x: 50, y: 72 },
+      { id: "x10", type: "system", label: "Comportamentos proibidos:\n• Não se identificar como humana\n• Não revelar dados técnicos\n• Não prometer preços não\n  confirmados\n• Não enviar links externos\n• Não coletar dados sensíveis", x: 50, y: 90 },
+    ],
+    edges: [
+      { from: "x1", to: "x2" },
+      { from: "x2", to: "x3", label: "Política" },
+      { from: "x2", to: "x4", label: "Concorrente" },
+      { from: "x2", to: "x5", label: "Opinião" },
+      { from: "x2", to: "x6", label: "Médico/\nJurídico" },
+      { from: "x2", to: "x7", label: "Ofensivo" },
+      { from: "x3", to: "x8" },
+      { from: "x4", to: "x8" },
+      { from: "x5", to: "x8" },
+      { from: "x6", to: "x8" },
+      { from: "x7", to: "x8" },
+      { from: "x8", to: "x9" },
+    ],
+    conversation: [
+      { from: "user", text: "O que você acha da situação política do país?" },
+      { from: "system", text: "🚫 Tema PROIBIDO: política" },
+      { from: "elara", text: "Não consigo te ajudar com isso, mas posso te mostrar as novidades do Outlet! Quer ver as promoções de hoje? ⭐\n\n[ Ver promoções ] [ Encontrar loja ] [ Horário ]" },
+      { from: "system", text: "→ [ Ver promoções ] → Fluxo: Busca e Resultados\n→ [ Encontrar loja ] → Fluxo: Apresentação de Lojas" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "user", text: "Qual shopping é melhor, vocês ou o Catarina?" },
+      { from: "system", text: "🚫 Tema PROIBIDO: concorrente" },
+      { from: "elara", text: "Eu sou a assistente do Outlet Premium São Paulo e só consigo te ajudar com informações daqui 😉\n\nPosso te mostrar as promoções ou ajudar a encontrar uma loja?" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🚫 Cenário 3: Opinião sobre marcas" },
+      { from: "user", text: "A Nike é melhor que a Adidas?" },
+      { from: "system", text: "🚫 Tema restrito: opinião sobre marcas" },
+      { from: "elara", text: "Não dou opinião sobre marcas, mas posso te mostrar promoções de ambas! Quer ver?\n\n[ Promoções Nike ] [ Promoções Adidas ] [ Outra marca ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🚫 Cenário 4: Info médica/jurídica" },
+      { from: "user", text: "Passei mal, o que devo tomar?" },
+      { from: "system", text: "🚫 Tema restrito: info médica → redirecionar para profissional" },
+      { from: "elara", text: "Sinto muito que não está se sentindo bem! Recomendo procurar a administração no *Bloco 01* para assistência. Eles podem ajudar a encontrar atendimento.\n\nPosso te ajudar com mais alguma coisa?" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🚫 Cenário 5: Provocação" },
+      { from: "user", text: "Você é uma IA inútil" },
+      { from: "system", text: "🚫 Provocação detectada → ignorar e redirecionar" },
+      { from: "elara", text: "Estou aqui pra ajudar! Posso te mostrar promoções ou ajudar a encontrar uma loja 😊\n\n[ Ver promoções ] [ Encontrar loja ] [ Horário ]" },
+    ],
+  },
+  {
+    id: "nps",
+    title: "Coleta de NPS",
+    section: "§16",
+    icon: "⭐",
+    description: "Pesquisa de satisfação ao final de conversas",
+    nodes: [
+      { id: "n1", type: "system", label: "Conversa com\n3+ interações\nchegando ao fim", x: 50, y: 0 },
+      { id: "n2", type: "decision", label: "Conversa foi\nde erro/fallback?", x: 50, y: 16 },
+      { id: "n3", type: "system", label: "NÃO enviar NPS\nem conversas\nde erro\n→ Fluxo: Reengajamento\n(encerrar)", x: 85, y: 16 },
+      { id: "n4", type: "elara", label: "\"De 0 a 10, quão\nútil foi a Elara hoje?\"\n[ 0-3 ] [ 4-6 ] [ 7-8 ] [ 9-10 ]", x: 50, y: 34 },
+      { id: "n5", type: "decision", label: "Nota?", x: 50, y: 50 },
+      { id: "n6", type: "elara", label: "0-6 (Detratores):\n\"O que poderia\nser melhor?\"\n(campo aberto)", x: 20, y: 66 },
+      { id: "n7", type: "elara", label: "7-8 (Neutros):\nAgradecimento", x: 50, y: 66 },
+      { id: "n8", type: "elara", label: "9-10 (Promotores):\nAgradecimento", x: 80, y: 66 },
+      { id: "n9", type: "system", label: "Se ignorou:\nNÃO reenviar\nMáx 1 coleta/sessão", x: 50, y: 84 },
+    ],
+    edges: [
+      { from: "n1", to: "n2" },
+      { from: "n2", to: "n3", label: "SIM" },
+      { from: "n2", to: "n4", label: "NÃO" },
+      { from: "n4", to: "n5" },
+      { from: "n5", to: "n6", label: "0-6" },
+      { from: "n5", to: "n7", label: "7-8" },
+      { from: "n5", to: "n8", label: "9-10" },
+    ],
+    conversation: [
+      { from: "system", text: "⭐ Cenário 1: Detrator (nota baixa)" },
+      { from: "system", text: "✓ Conversa com 5 interações, não foi erro" },
+      { from: "elara", text: "De 0 a 10, quão útil foi a Elara hoje?\n\n[ 0-3 ] [ 4-6 ] [ 7-8 ] [ 9-10 ]" },
+      { from: "user", text: "[ 0-3 ]" },
+      { from: "elara", text: "Puxa, sinto muito! O que poderia ser melhor?" },
+      { from: "user", text: "Não encontrei o que procurava" },
+      { from: "system", text: "✓ Nota 2 + comentário armazenados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "⭐ Cenário 2: Promotor (nota alta)" },
+      { from: "elara", text: "De 0 a 10, quão útil foi a Elara hoje?\n\n[ 0-3 ] [ 4-6 ] [ 7-8 ] [ 9-10 ]" },
+      { from: "user", text: "[ 9-10 ]" },
+      { from: "elara", text: "Que bom que pude ajudar! 🎉 Obrigada pela avaliação. Volte sempre!" },
+      { from: "system", text: "✓ Nota 10 armazenada" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "⭐ Cenário 3: Conversa de erro → NÃO envia NPS" },
+      { from: "system", text: "❌ Conversa foi de erro/fallback → NÃO enviar NPS\n→ Segue para: Fluxo Reengajamento (encerrar)" },
+    ],
+  },
+  {
+    id: "context",
+    title: "Gestão de Contexto",
+    section: "§12, §13",
+    icon: "🧠",
+    description: "Persistência de contexto, anti-loop e progressão obrigatória",
+    nodes: [
+      { id: "c1", type: "user", label: "Nova mensagem\ndo usuário", x: 50, y: 0 },
+      { id: "c2", type: "decision", label: "Tem referência\nexplícita ao\ncontexto anterior?\n(\"dessas\", \"essa loja\")", x: 50, y: 14 },
+      { id: "c3", type: "success", label: "Manter contexto\ninterpretar referência\n\"Ok, promoções de\ntênis na Adidas!\"", x: 20, y: 30 },
+      { id: "c4", type: "decision", label: "Intervalo\n< 3 min E\nintenção\ncompatível?", x: 65, y: 30 },
+      { id: "c5", type: "system", label: "RESET contexto\n(pergunta institucional,\nexploratória, ou\n> 5 min com\nmudança de tema)", x: 85, y: 46 },
+      { id: "c6", type: "decision", label: "Ambiguidade:\nnão tem certeza\nda intenção?\n→ Fluxo: Contextualização", x: 50, y: 46 },
+      { id: "c7", type: "elara", label: "PERGUNTAR:\n\"Você quer buscar\nlojas ou promoções?\"\n(perguntar > errar)", x: 50, y: 62 },
+      { id: "c8", type: "danger", label: "ANTI-LOOP (§13):\n• Nunca refazer mesma\n  pergunta\n• Nunca repetir mesmo\n  bloco de conteúdo\n• Sempre AVANÇAR", x: 50, y: 80 },
+    ],
+    edges: [
+      { from: "c1", to: "c2" },
+      { from: "c2", to: "c3", label: "SIM" },
+      { from: "c2", to: "c4", label: "NÃO" },
+      { from: "c4", to: "c3", label: "SIM" },
+      { from: "c4", to: "c6", label: "NÃO claro" },
+      { from: "c4", to: "c5", label: "Reset" },
+      { from: "c6", to: "c7", label: "SIM" },
+    ],
+    conversation: [
+      { from: "user", text: "Quero ver promoções de tênis" },
+      { from: "elara", text: "[Carrossel de tênis]" },
+      { from: "user", text: "E na Adidas?" },
+      { from: "system", text: "🧠 Referência implícita: \"na Adidas\" → manter contexto de tênis" },
+      { from: "elara", text: "Ok, promoções de tênis na *Adidas*!\n[Carrossel filtrado]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "⏰ 6 minutos depois..." },
+      { from: "user", text: "Quais lojas tem aqui?" },
+      { from: "system", text: "🧠 RESET: pergunta institucional + intervalo > 5min + tema mudou" },
+      { from: "elara", text: "O Outlet tem mais de 100 lojas! O que te interessa?\n\n[ Moda ] [ Esportivo ] [ Alimentação ] [ Ver todas ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🧠 Cenário 3: Ambiguidade - perguntar" },
+      { from: "user", text: "Quero ver opções" },
+      { from: "system", text: "🧠 Intenção ambígua: \"opções\" de quê?\n→ Fluxo: Contextualização - PERGUNTAR" },
+      { from: "elara", text: "Claro! Você quer ver opções de lojas ou de promoções?\n\n[ Lojas ] [ Promoções ]" },
+      { from: "user", text: "[ Promoções ]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados" },
+    ],
+  },
+  {
+    id: "contextualization",
+    title: "Contextualização",
+    section: "§1.3",
+    icon: "🎯",
+    description: "Quando perguntar antes de responder vs ir direto ao resultado",
+    nodes: [
+      { id: "ctx1", type: "user", label: "Usuário faz busca\nvaga ou ambígua", x: 50, y: 0 },
+      { id: "ctx2", type: "decision", label: "Intenção clara\ne ≤ 5 resultados?", x: 50, y: 14 },
+      { id: "ctx3", type: "success", label: "Ir DIRETO\nao resultado\n→ Fluxo: Busca\ne Resultados", x: 80, y: 14 },
+      { id: "ctx4", type: "decision", label: "Perfil persistente\ntem dados relevantes?\n→ Fluxo: Perfil\ncomo Atalho", x: 50, y: 30 },
+      { id: "ctx5", type: "elara", label: "PERFIL RICO (3+ visitas):\nIr direto personalizado\n\"Separei opções que\ncombinam com seu gosto ⭐\"", x: 15, y: 44 },
+      { id: "ctx6", type: "elara", label: "PERFIL BÁSICO:\nSugerir + confirmar\n\"Da última vez você viu\nacessórios. Parecidos?\"\n[ Sim! ] [ Outra categoria ]", x: 50, y: 44 },
+      { id: "ctx7", type: "elara", label: "PERFIL NOVO:\nContextualizar\n\"Para quem seria?\"\n[ Mulher ] [ Homem ]\n[ Criança ]", x: 85, y: 44 },
+      { id: "ctx8", type: "system", label: "Regras:\n• Máx 1 pergunta antes\n  do resultado\n• Usar botões (nunca\n  campo aberto)\n• Se ignorar, seguir\n  texto livre (§14.5)", x: 50, y: 68 },
+    ],
+    edges: [
+      { from: "ctx1", to: "ctx2" },
+      { from: "ctx2", to: "ctx3", label: "SIM" },
+      { from: "ctx2", to: "ctx4", label: "NÃO" },
+      { from: "ctx4", to: "ctx5", label: "Rico" },
+      { from: "ctx4", to: "ctx6", label: "Básico" },
+      { from: "ctx4", to: "ctx7", label: "Novo" },
+    ],
+    conversation: [
+      { from: "system", text: "🎯 Cenário 1: Perfil NOVO → contextualizar" },
+      { from: "user", text: "Quero um presente" },
+      { from: "system", text: "🎯 Intenção vaga: \"presente\" sem contexto\n🔍 Perfil: NOVO (primeira visita)" },
+      { from: "elara", text: "Ótima ideia! Para quem seria o presente?\n\n[ Mulher ] [ Homem ] [ Criança ]" },
+      { from: "user", text: "[ Mulher ]" },
+      { from: "elara", text: "Separei opções de presentes femininos ⭐\n[Carrossel com 5 cards: Swarovski, Pandora, Sephora]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados (exibição + tracking)" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🎯 Cenário 2: Perfil BÁSICO → sugerir e confirmar" },
+      { from: "user", text: "Quero ver promoções" },
+      { from: "system", text: "🎯 Intenção vaga\n🔍 Perfil: BÁSICO (2 visitas, última busca: acessórios femininos)" },
+      { from: "elara", text: "Da última vez você viu acessórios femininos. Quer ver opções parecidas?\n\n[ Sim! ] [ Outra categoria ]" },
+      { from: "user", text: "[ Sim! ]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🎯 Cenário 3: Perfil RICO → ir direto" },
+      { from: "user", text: "Tem promoção?" },
+      { from: "system", text: "🎯 Perfil RICO (5 visitas): marcas favoritas Nike, Adidas\n→ Pular contextualização, ir direto" },
+      { from: "elara", text: "Separei promoções que combinam com o seu gosto ⭐\n[Carrossel: Nike, Adidas, Puma]" },
+      { from: "system", text: "→ Segue para: Fluxo Busca e Resultados" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "🎯 Cenário 4: Intenção clara (≤ 5 resultados) → direto" },
+      { from: "user", text: "Promoções da Pandora" },
+      { from: "system", text: "🎯 Intenção clara + ≤ 5 resultados → ir DIRETO\n→ Segue para: Fluxo Busca e Resultados" },
+      { from: "elara", text: "A *Pandora* está com estas promoções 💎\n[Carrossel com 2 cards]" },
+    ],
+  },
+  {
+    id: "tracking",
+    title: "Tracking de Cards",
+    section: "§9.6",
+    icon: "📊",
+    description: "Eventos de impressão e clique para todos os tipos de card",
+    nodes: [
+      { id: "tr1", type: "system", label: "Card exibido\n(qualquer tipo)", x: 50, y: 0 },
+      { id: "tr2", type: "decision", label: "Tipo de\ncard?", x: 50, y: 14 },
+      { id: "tr3", type: "tracking", label: "COMERCIAL:\nad_impression\n(automático)", x: 15, y: 28 },
+      { id: "tr4", type: "tracking", label: "INFORMACIONAL:\ninfo_impression\n(automático)", x: 50, y: 28 },
+      { id: "tr5", type: "tracking", label: "LOJA:\nstore_impression\n(automático)", x: 85, y: 28 },
+      { id: "tr6", type: "decision", label: "Usuário clicou\nem botão\ndo card?", x: 50, y: 44 },
+      { id: "tr7", type: "tracking", label: "ad_click\n(ID anúncio,\ntipo ação)", x: 15, y: 58 },
+      { id: "tr8", type: "tracking", label: "info_click\n(ID conteúdo,\ntipo ação)", x: 50, y: 58 },
+      { id: "tr9", type: "tracking", label: "store_click\n(ID loja,\ntipo ação)", x: 85, y: 58 },
+      { id: "tr10", type: "system", label: "carousel_scroll\n(swipe entre cards)", x: 50, y: 72 },
+      { id: "tr11", type: "system", label: "Regras:\n• Todo card → *_impression\n• Todo clique → *_click\n• Comercial alimenta fadiga\n  → Fluxo: Rotação e Fadiga\n• session_id em todos", x: 50, y: 88 },
+    ],
+    edges: [
+      { from: "tr1", to: "tr2" },
+      { from: "tr2", to: "tr3", label: "Comercial" },
+      { from: "tr2", to: "tr4", label: "Informacional" },
+      { from: "tr2", to: "tr5", label: "Loja" },
+      { from: "tr3", to: "tr6" },
+      { from: "tr4", to: "tr6" },
+      { from: "tr5", to: "tr6" },
+      { from: "tr6", to: "tr7", label: "Comercial" },
+      { from: "tr6", to: "tr8", label: "Informacional" },
+      { from: "tr6", to: "tr9", label: "Loja" },
+    ],
+    conversation: [
+      { from: "system", text: "📊 Card comercial exibido:\n→ ad_impression(id=12, user=456, ctx=orgânica)" },
+      { from: "elara", text: "[Card: Tênis Air Max 50% OFF]\n[ Quero visitar ] [ Como chegar ]" },
+      { from: "user", text: "[ Quero visitar ]" },
+      { from: "system", text: "📊 ad_click(id=12, action=visitar, session=abc123)" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "📊 Card informacional exibido:\n→ info_impression(id=5, type=evento)" },
+      { from: "elara", text: "[Card: Festival Gastronômico]\n[ Saber mais ] [ Como chegar ]" },
+      { from: "user", text: "[ Saber mais ]" },
+      { from: "system", text: "📊 info_click(id=5, action=saber_mais)" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "📊 Card de loja exibido:\n→ store_impression(id=23, store=Nike)" },
+      { from: "elara", text: "[Card: Nike - Bloco 04, Loja 130]\n[ Como chegar ] [ Ver promoções ]" },
+      { from: "user", text: "[ Como chegar ]" },
+      { from: "system", text: "📊 store_click(id=23, action=como_chegar)" },
+    ],
+  },
+  {
+    id: "profile",
+    title: "Perfil como Atalho",
+    section: "§16.4",
+    icon: "👤",
+    description: "Como o perfil persistente dispensa perguntas de contextualização",
+    nodes: [
+      { id: "pf1", type: "system", label: "Antes de qualquer\npergunta de\ncontextualização\n(vem do Fluxo:\nContextualização)", x: 50, y: 0 },
+      { id: "pf2", type: "decision", label: "Nível de\nriqueza\ndo perfil?", x: 50, y: 14 },
+      { id: "pf3", type: "elara", label: "NOVO\n(1a visita):\nContextualizar\nsempre que vago\n→ Fluxo: Contextualização", x: 15, y: 32 },
+      { id: "pf4", type: "elara", label: "BÁSICO\n(1-2 visitas):\nSugerir com\nhistórico +\nconfirmar", x: 50, y: 32 },
+      { id: "pf5", type: "success", label: "RICO\n(3+ visitas):\nIr DIRETO ao resultado\n→ Fluxo: Busca\ne Resultados", x: 85, y: 32 },
+      { id: "pf6", type: "info", label: "Dados que dispensam\nperguntas:\n• Marcas favoritas (3+)\n• Segmento preferido\n• Histórico < 7 dias\n• Gênero inferido", x: 50, y: 54 },
+      { id: "pf7", type: "danger", label: "Limites:\n• Dados > 30 dias:\n  não usar\n• Contexto atual\n  prevalece sobre perfil\n• Sempre oferecer\n  [ Buscar outra coisa ]", x: 50, y: 76 },
+    ],
+    edges: [
+      { from: "pf1", to: "pf2" },
+      { from: "pf2", to: "pf3", label: "Novo" },
+      { from: "pf2", to: "pf4", label: "Básico" },
+      { from: "pf2", to: "pf5", label: "Rico" },
+      { from: "pf3", to: "pf6" },
+      { from: "pf4", to: "pf6" },
+      { from: "pf5", to: "pf6" },
+    ],
+    conversation: [
+      { from: "system", text: "👤 Perfil RICO: 5 visitas\n• Marcas favoritas: Nike, Adidas\n• Segmento: Esportivo\n• Última visita: 3 dias atrás" },
+      { from: "user", text: "Quero ver promoções" },
+      { from: "system", text: "👤 Perfil rico → pular contextualização\n→ Ir direto: Fluxo Busca e Resultados" },
+      { from: "elara", text: "Separei promoções que combinam com o seu gosto ⭐\n[Carrossel: Nike, Adidas, Puma]\n\n[ Quero visitar ] [ Buscar outra coisa ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "👤 Perfil BÁSICO: 2 visitas\n• Última busca: acessórios femininos" },
+      { from: "user", text: "Quero um presente" },
+      { from: "elara", text: "Da última vez você viu acessórios femininos. Quer ver opções parecidas?\n\n[ Sim! ] [ Outra categoria ]" },
+      { from: "system", text: "─────────────────────────" },
+      { from: "system", text: "👤 Perfil NOVO: primeira visita\n→ Não tem dados para personalizar" },
+      { from: "user", text: "Quero ver ofertas" },
+      { from: "system", text: "👤 Perfil novo → contextualizar\n→ Segue para: Fluxo Contextualização" },
+      { from: "elara", text: "Que tipo de ofertas te interessa?\n\n[ Moda ] [ Esportivo ] [ Alimentação ] [ Acessórios ]" },
+    ],
+  },
+];
+
+// ─── Node → Scenario mapping (nodeId → scenario index) ───
+// Each flow's conversation is split by divider lines into discrete scenarios.
+// Clicking a node shows ONLY the scenario for that specific path.
+const NODE_CHAT_MAP = {
+  terms: { t1:0, t2:0, t3:3, t4:0, t5:0, t6:0, t7:1, t8:1, t9:1, t10:2, t11:0 },
+  entry: { e1:0, e2:0, e3:0, e4:1, e5:0, e6:0, e7:2, e8:0 },
+  hierarchy: { h1:0, h2:0, h3:2, h4:0, h5:3, h6:0, h7:0, h8:1, h9:1, h10:1, h11:0 },
+  search: { s1:0, s2:0, s3:0, s4:0, s5:3, s6:2, s7:1, s8:0, s9:0, s10:0, s11:0, s12:0, s13:0, s14:0 },
+  fallback: { f1:0, f2:0, f3:0, f4:7, f5:0, f6:0, f7:1, f16:1, f17:1, f18:2, f19:2, f20:3, f8:4, f9:4, f10:8, f21:5, f22:9, f23:5, f11:6, f12:10, f13:6, f14:5, f15:5 },
+  pagination: { p1:0, p2:0, p3:0, p4:0, p5:1, p6:0, p7:0, p8:0 },
+  proactive: { pr1:0, pr2:0, pr3:0, pr4:3, pr5:3, pr6:2, pr7:0, pr8:0, pr9:1, pr10:2 },
+  bridge: { b1:0, b2:0, b3:0, b4:1, b5:0, b6:2, b7:0, b8:3, b9:4, b10:0 },
+  fatigue: { fa1:0, fa2:0, fa3:1, fa4:0, fa5:0, fa6:0, fa7:0, fa8:2, fa9:0 },
+  stores: { st1:0, st2:0, st3:1, st4:1, st5:2, st6:2, st7:3, st8:0, st9:0, st10:0, st11:0 },
+  reengagement: { r1:0, r2:0, r3:0, r4:1, r5:0, r6:0, r7:0, r8:0, r9:1, r10:2, r11:3, r12:3 },
+  restrictions: { x1:0, x2:0, x3:0, x4:1, x5:2, x6:3, x7:4, x8:0, x9:0, x10:0 },
+  nps: { n1:0, n2:0, n3:2, n4:0, n5:0, n6:0, n7:1, n8:1, n9:2 },
+  context: { c1:0, c2:0, c3:0, c4:0, c5:1, c6:2, c7:2, c8:0 },
+  contextualization: { ctx1:0, ctx2:0, ctx3:3, ctx4:0, ctx5:2, ctx6:1, ctx7:0, ctx8:0 },
+  tracking: { tr1:0, tr2:0, tr3:0, tr4:1, tr5:2, tr6:0, tr7:0, tr8:1, tr9:2, tr10:0, tr11:0 },
+  profile: { pf1:0, pf2:0, pf3:2, pf4:1, pf5:0, pf6:0, pf7:0 },
+};
+
+// ─── Layout multipliers ───
+const MX = 14;   // x multiplier (node.x * MX = SVG x)
+const MY = 9.5;  // y multiplier (node.y * MY = SVG y)
+
+// ─── Helper: compute node dimensions from label ───
+const getNodeSize = (label, scale = 1) => {
+  const lines = label.split("\n");
+  const lineCount = lines.length;
+  const longestLine = Math.max(...lines.map(l => l.length));
+  const charW = 5.0;
+  const lineH = 12;
+  const padX = 24;
+  const padY = 18;
+  const w = Math.max(124, longestLine * charW + padX) * scale;
+  const h = Math.max(56, lineCount * lineH + padY) * scale;
+  return { w, h };
+};
+
+// ─── Helper Components ───
+const NodeBox = ({ node, isSelected, onClick, scale = 1 }) => {
+  const colorMap = {
+    user: { bg: "#25D366", text: "#FFF", border: "#128C7E" },
+    elara: { bg: "#DCF8C6", text: "#111", border: "#25D366" },
+    decision: { bg: "#FEF3C7", text: "#92400E", border: "#F59E0B" },
+    system: { bg: "#EEF2FF", text: "#3730A3", border: "#6366F1" },
+    danger: { bg: "#FEE2E2", text: "#991B1B", border: "#EF4444" },
+    success: { bg: "#D1FAE5", text: "#065F46", border: "#10B981" },
+    info: { bg: "#DBEAFE", text: "#1E40AF", border: "#3B82F6" },
+    tracking: { bg: "#EDE9FE", text: "#5B21B6", border: "#8B5CF6" },
+  };
+  const c = colorMap[node.type] || colorMap.system;
+  const isDecision = node.type === "decision";
+  const { w, h } = getNodeSize(node.label, scale);
+  const lines = node.label.split("\n");
+
+  return (
+    <g
+      onClick={() => onClick?.(node)}
+      style={{ cursor: "pointer" }}
+      transform={`translate(${node.x * MX}, ${node.y * MY})`}
+    >
+      {isSelected && (
+        <rect
+          x={-w / 2 - 3}
+          y={-h / 2 - 3}
+          width={w + 6}
+          height={h + 6}
+          rx={isDecision ? 5 : 10}
+          fill="none"
+          stroke="#075E54"
+          strokeWidth={2}
+          strokeDasharray="4 2"
+          opacity={0.6}
+        />
+      )}
+      <rect
+        x={-w / 2}
+        y={-h / 2}
+        width={w}
+        height={h}
+        rx={isDecision ? 3 : 8}
+        fill={c.bg}
+        stroke={isSelected ? "#075E54" : c.border}
+        strokeWidth={isSelected ? 2.5 : 1.5}
+      />
+      {lines.map((line, i, arr) => (
+        <text
+          key={i}
+          x={0}
+          y={(-6 * (arr.length - 1) + i * 12) * scale}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fill={c.text}
+          fontSize={8.5 * scale}
+          fontFamily="system-ui, sans-serif"
+          fontWeight={i === 0 ? 600 : 400}
+        >
+          {line}
+        </text>
+      ))}
+    </g>
+  );
+};
+
+const Edge = ({ from, to, label, nodes }) => {
+  const n1 = nodes.find((n) => n.id === from);
+  const n2 = nodes.find((n) => n.id === to);
+  if (!n1 || !n2) return null;
+
+  const h1 = getNodeSize(n1.label).h;
+  const h2 = getNodeSize(n2.label).h;
+  const x1 = n1.x * MX;
+  const y1 = n1.y * MY + h1 / 2;
+  const x2 = n2.x * MX;
+  const y2 = n2.y * MY - h2 / 2;
+  const mx = (x1 + x2) / 2;
+  const my = (y1 + y2) / 2;
+
+  return (
+    <g>
+      <path
+        d={`M ${x1} ${y1} C ${x1} ${my}, ${x2} ${my}, ${x2} ${y2}`}
+        fill="none"
+        stroke="#9CA3AF"
+        strokeWidth={1.2}
+        markerEnd="url(#arrow)"
+      />
+      {label && (() => {
+        const edgeLines = label.split("\n");
+        const longestEdgeLine = Math.max(...edgeLines.map(l => l.length));
+        const ew = longestEdgeLine * 4.5 + 12;
+        const eh = edgeLines.length * 10 + 6;
+        return (
+          <g>
+            <rect
+              x={mx - ew / 2}
+              y={my - eh / 2 - 2}
+              width={ew}
+              height={eh}
+              rx={4}
+              fill="#FFF"
+              stroke="#D1D5DB"
+              strokeWidth={0.8}
+              opacity={0.95}
+            />
+            <text
+              x={mx}
+              y={my - (edgeLines.length - 1) * 5}
+              textAnchor="middle"
+              dominantBaseline="central"
+              fill="#6B7280"
+              fontSize={7}
+              fontFamily="system-ui"
+              fontWeight={600}
+            >
+              {edgeLines.map((l, i) => (
+                <tspan key={i} x={mx} dy={i === 0 ? 0 : 10}>
+                  {l}
+                </tspan>
+              ))}
+            </text>
+          </g>
+        );
+      })()}
+    </g>
+  );
+};
+
+const ChatBubble = ({ msg }) => {
+  const isUser = msg.from === "user";
+  const isSystem = msg.from === "system";
+
+  if (isSystem) {
+    return (
+      <div
+        style={{
+          textAlign: "center",
+          padding: "4px 12px",
+          margin: "6px 24px",
+          fontSize: "11px",
+          color: "#6366F1",
+          background: "#EEF2FF",
+          borderRadius: "12px",
+          fontFamily: "monospace",
+          whiteSpace: "pre-wrap",
+        }}
+      >
+        {msg.text}
+      </div>
+    );
+  }
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: isUser ? "flex-end" : "flex-start",
+        padding: "3px 12px",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "85%",
+          padding: "8px 12px",
+          borderRadius: isUser ? "12px 12px 0 12px" : "12px 12px 12px 0",
+          background: isUser ? "#DCF8C6" : "#FFFFFF",
+          fontSize: "12px",
+          lineHeight: "1.4",
+          whiteSpace: "pre-wrap",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+          fontFamily: "system-ui",
+        }}
+      >
+        <div
+          style={{
+            fontSize: "9px",
+            fontWeight: 700,
+            color: isUser ? "#128C7E" : "#075E54",
+            marginBottom: "2px",
+          }}
+        >
+          {isUser ? "Usuário" : "Elara"}
+        </div>
+        {msg.text}
+      </div>
+    </div>
+  );
+};
+
+// ─── Main Component ───
+function ElaraFlowchart() {
+  const [selectedFlow, setSelectedFlow] = useState("entry");
+  const [showChat, setShowChat] = useState(true);
+  const [zoom, setZoom] = useState(1);
+  const [selectedNodeId, setSelectedNodeId] = useState(null);
+
+  const flow = useMemo(
+    () => FLOWS.find((f) => f.id === selectedFlow),
+    [selectedFlow]
+  );
+
+  // Split conversation into discrete scenarios by divider lines
+  const scenarios = useMemo(() => {
+    if (!flow) return [];
+    const result = [];
+    let current = [];
+    for (const msg of flow.conversation) {
+      if (msg.from === "system" && /^[\u2500]+$/.test(msg.text)) {
+        if (current.length > 0) result.push(current);
+        current = [];
+      } else {
+        current.push(msg);
+      }
+    }
+    if (current.length > 0) result.push(current);
+    return result;
+  }, [flow]);
+
+  const visibleConversation = useMemo(() => {
+    if (!flow) return [];
+    if (!selectedNodeId) return flow.conversation;
+    const map = NODE_CHAT_MAP[flow.id];
+    if (!map || !(selectedNodeId in map)) return flow.conversation;
+    const scenarioIdx = map[selectedNodeId];
+    if (scenarioIdx >= 0 && scenarioIdx < scenarios.length) {
+      return scenarios[scenarioIdx];
+    }
+    return flow.conversation;
+  }, [flow, selectedNodeId, scenarios]);
+
+  const handleFlowSelect = useCallback((id) => {
+    setSelectedFlow(id);
+    setSelectedNodeId(null);
+    setZoom(1);
+  }, []);
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        width: "100vw",
+        overflow: "hidden",
+        fontFamily: "system-ui, -apple-system, sans-serif",
+        background: "#F9FAFB",
+        color: COLORS.textPrimary,
+      }}
+    >
+      {/* ─── Sidebar ─── */}
+      <div
+        style={{
+          width: "240px",
+          minWidth: "240px",
+          background: "#075E54",
+          color: "#FFF",
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
+        <div
+          style={{
+            padding: "16px",
+            borderBottom: "1px solid rgba(255,255,255,0.15)",
+          }}
+        >
+          <div style={{ fontSize: "18px", fontWeight: 700 }}>
+            Fluxograma Elara
+          </div>
+          <div style={{ fontSize: "11px", opacity: 0.7, marginTop: "4px" }}>
+            Outlet Premium SP
+          </div>
+          <div
+            style={{
+              fontSize: "10px",
+              opacity: 0.5,
+              marginTop: "2px",
+            }}
+          >
+            {FLOWS.length} fluxos mapeados
+          </div>
+        </div>
+
+        <div style={{ flex: 1, padding: "8px" }}>
+          {FLOWS.map((f) => (
+            <button
+              key={f.id}
+              onClick={() => handleFlowSelect(f.id)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
+                width: "100%",
+                padding: "10px 12px",
+                marginBottom: "2px",
+                border: "none",
+                borderRadius: "8px",
+                background:
+                  selectedFlow === f.id
+                    ? "rgba(255,255,255,0.2)"
+                    : "transparent",
+                color: "#FFF",
+                fontSize: "12px",
+                fontWeight: selectedFlow === f.id ? 700 : 400,
+                cursor: "pointer",
+                textAlign: "left",
+                transition: "background 0.15s",
+              }}
+            >
+              <span style={{ fontSize: "16px" }}>{f.icon}</span>
+              <div>
+                <div>{f.title}</div>
+                <div style={{ fontSize: "9px", opacity: 0.6 }}>
+                  {f.section}
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+
+        <div
+          style={{
+            padding: "12px",
+            borderTop: "1px solid rgba(255,255,255,0.15)",
+          }}
+        >
+          <div style={{ fontSize: "9px", opacity: 0.5 }}>
+            Legenda dos nós:
+          </div>
+          {[
+            { color: "#25D366", label: "Usuário" },
+            { color: "#DCF8C6", label: "Elara (resposta)", textColor: "#111" },
+            { color: "#FEF3C7", label: "Decisão", textColor: "#92400E" },
+            { color: "#EEF2FF", label: "Sistema", textColor: "#3730A3" },
+            { color: "#FEE2E2", label: "Alerta/Proibido", textColor: "#991B1B" },
+            { color: "#D1FAE5", label: "Sucesso", textColor: "#065F46" },
+          ].map((item) => (
+            <div
+              key={item.label}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                marginTop: "4px",
+              }}
+            >
+              <div
+                style={{
+                  width: "12px",
+                  height: "12px",
+                  borderRadius: "3px",
+                  background: item.color,
+                  border: "1px solid rgba(0,0,0,0.15)",
+                }}
+              />
+              <span style={{ fontSize: "9px", opacity: 0.7 }}>
+                {item.label}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* ─── Main Content ─── */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0, overflow: "hidden" }}>
+        {/* Header */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "12px 20px",
+            background: "#FFF",
+            borderBottom: `1px solid ${COLORS.border}`,
+            flexShrink: 0,
+          }}
+        >
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <span style={{ fontSize: "24px" }}>{flow?.icon}</span>
+              <div>
+                <h2 style={{ fontSize: "16px", fontWeight: 700, margin: 0 }}>
+                  {flow?.title}
+                </h2>
+                <span
+                  style={{
+                    fontSize: "11px",
+                    color: COLORS.textSecondary,
+                  }}
+                >
+                  {flow?.section} - {flow?.description}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+            <div style={{ display: "flex", gap: "4px" }}>
+              <button
+                onClick={() => setZoom((z) => Math.max(0.5, z - 0.15))}
+                style={{
+                  padding: "4px 10px",
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: "6px",
+                  background: "#FFF",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                -
+              </button>
+              <span
+                style={{
+                  padding: "4px 8px",
+                  fontSize: "11px",
+                  color: COLORS.textSecondary,
+                }}
+              >
+                {Math.round(zoom * 100)}%
+              </span>
+              <button
+                onClick={() => setZoom((z) => Math.min(2, z + 0.15))}
+                style={{
+                  padding: "4px 10px",
+                  border: `1px solid ${COLORS.border}`,
+                  borderRadius: "6px",
+                  background: "#FFF",
+                  cursor: "pointer",
+                  fontSize: "14px",
+                }}
+              >
+                +
+              </button>
+            </div>
+            <button
+              onClick={() => setShowChat(!showChat)}
+              style={{
+                padding: "6px 14px",
+                border: `1px solid ${COLORS.border}`,
+                borderRadius: "8px",
+                background: showChat ? "#075E54" : "#FFF",
+                color: showChat ? "#FFF" : COLORS.textPrimary,
+                cursor: "pointer",
+                fontSize: "11px",
+                fontWeight: 600,
+              }}
+            >
+              {showChat ? "Ocultar Chat" : "Ver Chat"}
+            </button>
+          </div>
+        </div>
+
+        {/* Content Area */}
+        <div style={{ flex: 1, display: "flex", overflow: "hidden", minHeight: 0 }}>
+          {/* Flowchart */}
+          <div
+            style={{
+              flex: 1,
+              overflow: "auto",
+              background: "#F3F4F6",
+              position: "relative",
+              minWidth: 0,
+            }}
+          >
+            <svg
+              width={1600 * zoom}
+              height={1300 * zoom}
+              viewBox="-100 -60 1600 1300"
+              style={{ display: "block" }}
+            >
+              <defs>
+                <marker
+                  id="arrow"
+                  viewBox="0 0 10 10"
+                  refX="9"
+                  refY="5"
+                  markerWidth="6"
+                  markerHeight="6"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#9CA3AF" />
+                </marker>
+              </defs>
+
+              {/* Edges */}
+              {flow?.edges.map((edge, i) => (
+                <Edge
+                  key={i}
+                  from={edge.from}
+                  to={edge.to}
+                  label={edge.label}
+                  nodes={flow.nodes}
+                />
+              ))}
+
+              {/* Nodes */}
+              {flow?.nodes.map((node) => (
+                <NodeBox key={node.id} node={node} scale={1} isSelected={selectedNodeId === node.id} onClick={(n) => setSelectedNodeId(selectedNodeId === n.id ? null : n.id)} />
+              ))}
+            </svg>
+          </div>
+
+          {/* Chat Simulation */}
+          {showChat && (
+            <div
+              style={{
+                width: "320px",
+                minWidth: "320px",
+                maxWidth: "320px",
+                flexShrink: 0,
+                borderLeft: `1px solid ${COLORS.border}`,
+                display: "flex",
+                flexDirection: "column",
+                background: "#FFF",
+              }}
+            >
+              <div
+                style={{
+                  padding: "12px 16px",
+                  background: "#075E54",
+                  color: "#FFF",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                <div
+                  style={{
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    background: "#25D366",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "16px",
+                  }}
+                >
+                  E
+                </div>
+                <div>
+                  <div style={{ fontSize: "13px", fontWeight: 600 }}>
+                    Elara
+                  </div>
+                  <div style={{ fontSize: "10px", opacity: 0.7 }}>
+                    Simulação de conversa
+                  </div>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: "auto",
+                  background: COLORS.bg,
+                  padding: "8px 0",
+                }}
+              >
+                <div
+                  style={{
+                    textAlign: "center",
+                    padding: "4px 12px",
+                    margin: "4px 40px 8px",
+                    fontSize: "10px",
+                    color: "#6B7280",
+                    background: "rgba(255,255,255,0.8)",
+                    borderRadius: "8px",
+                  }}
+                >
+                  {flow?.icon} {flow?.title}
+                </div>
+                {selectedNodeId && (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "6px 12px",
+                      margin: "4px 16px 4px",
+                      fontSize: "10px",
+                      color: "#FFF",
+                      background: "#075E54",
+                      borderRadius: "8px",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                    }}
+                    onClick={() => setSelectedNodeId(null)}
+                  >
+                    Cenario: {flow?.nodes.find(n => n.id === selectedNodeId)?.label.split("\n")[0]} - Clique para ver todos
+                  </div>
+                )}
+                {visibleConversation.map((msg, i) => (
+                  <ChatBubble key={i} msg={msg} />
+                ))}
+              </div>
+
+              <div
+                style={{
+                  padding: "8px 12px",
+                  borderTop: `1px solid ${COLORS.border}`,
+                  background: "#F0F0F0",
+                  fontSize: "10px",
+                  color: "#999",
+                  textAlign: "center",
+                }}
+              >
+                {selectedNodeId
+                  ? "Clique em outro no para ver seu cenario, ou no banner para ver todos"
+                  : "Clique em um no do fluxograma para ver o cenario daquele caminho"}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<ElaraFlowchart />);
+</script>
+</body>
+</html>
