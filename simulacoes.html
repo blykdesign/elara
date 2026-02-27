@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulações de Conversa · Elara | Outlet Premium São Paulo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #f0f2f5; color: #1a1a2e; line-height: 1.5; }
+
+  .hero { background: linear-gradient(135deg, #075e54 0%, #128c7e 50%, #25d366 100%); color: white; padding: 60px 40px; text-align: center; }
+  .hero h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 12px; }
+  .hero p { font-size: 1.05rem; opacity: 0.9; max-width: 700px; margin: 0 auto; }
+
+  .nav-tabs { display: flex; justify-content: center; gap: 8px; padding: 20px 16px; background: #fff; border-bottom: 1px solid #e0e0e0; position: sticky; top: 0; z-index: 100; flex-wrap: wrap; }
+  .nav-tab { padding: 8px 16px; border-radius: 24px; border: 2px solid #ddd; background: #fff; cursor: pointer; font-size: 0.82rem; font-weight: 600; transition: all 0.2s; color: #555; }
+  .nav-tab:hover { border-color: #128c7e; color: #128c7e; }
+  .nav-tab.active { background: #128c7e; color: white; border-color: #128c7e; }
+  .nav-tab.happy { border-left: 4px solid #25d366; }
+  .nav-tab.normal { border-left: 4px solid #f0b429; }
+  .nav-tab.bad { border-left: 4px solid #e53e3e; }
+
+  .section { display: none; max-width: 1200px; margin: 0 auto; padding: 32px 20px; }
+  .section.active { display: block; }
+  .section-header { text-align: center; margin-bottom: 36px; }
+  .section-header h2 { font-size: 1.5rem; margin-bottom: 8px; }
+  .path-badge { display: inline-block; padding: 4px 16px; border-radius: 16px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: white; }
+  .path-badge.happy { background: #25d366; }
+  .path-badge.normal { background: #f0b429; color: #333; }
+  .path-badge.bad { background: #e53e3e; }
+  .section-header p { margin-top: 12px; color: #666; max-width: 700px; margin-left: auto; margin-right: auto; }
+
+  .simulation { display: grid; grid-template-columns: 380px 1fr; gap: 24px; margin-bottom: 48px; align-items: start; }
+  @media (max-width: 860px) { .simulation { grid-template-columns: 1fr; } }
+
+  .phone-frame { width: 380px; border-radius: 32px; overflow: hidden; box-shadow: 0 16px 48px rgba(0,0,0,0.18); background: #000; padding: 8px; position: sticky; top: 80px; }
+  @media (max-width: 860px) { .phone-frame { width: 100%; max-width: 400px; margin: 0 auto; position: static; } }
+  .phone-inner { border-radius: 26px; overflow: hidden; background: #efeae2; }
+
+  .wa-header { background: #075e54; color: white; padding: 12px 16px; display: flex; align-items: center; gap: 12px; }
+  .wa-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #25d366, #128c7e); display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: white; flex-shrink: 0; }
+  .wa-name { font-weight: 600; font-size: 0.95rem; }
+  .wa-status { font-size: 0.75rem; opacity: 0.8; }
+
+  .wa-chat { background: #efeae2; background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23d4cfc6' fill-opacity='0.3'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); padding: 16px 12px; min-height: 400px; max-height: 680px; overflow-y: auto; }
+
+  .msg { max-width: 85%; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; font-size: 0.85rem; line-height: 1.45; position: relative; word-wrap: break-word; }
+  .msg-bot { background: #fff; margin-right: auto; border-top-left-radius: 0; box-shadow: 0 1px 1px rgba(0,0,0,0.08); }
+  .msg-user { background: #d9fdd3; margin-left: auto; border-top-right-radius: 0; box-shadow: 0 1px 1px rgba(0,0,0,0.08); }
+  .msg .time { font-size: 0.67rem; color: #999; text-align: right; margin-top: 3px; }
+  .msg b { font-weight: 600; }
+  .msg s { color: #999; }
+  .msg code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.84rem; }
+  .msg em { font-style: italic; color: #666; }
+
+  .quick-replies { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px; margin-bottom: 6px; max-width: 85%; }
+  .qr-btn { background: #fff; border: 1.5px solid #25d366; color: #075e54; padding: 5px 11px; border-radius: 18px; font-size: 0.78rem; font-weight: 500; cursor: default; transition: all 0.2s; }
+  .qr-btn.selected { background: #25d366; color: #fff; border-color: #25d366; font-weight: 600; }
+
+  .wa-list-btn { background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,0.1); margin-bottom: 4px; max-width: 85%; }
+  .wa-list-btn-inner { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 16px; color: #075e54; font-size: 0.82rem; font-weight: 600; border-top: 1px solid #e8e8e8; }
+  .wa-list-sheet { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.15); margin-bottom: 6px; max-width: 85%; }
+  .wa-list-title { background: #075e54; color: white; padding: 10px 16px; font-size: 0.78rem; font-weight: 700; text-align: center; letter-spacing: 0.5px; }
+  .wa-list-scroll { max-height: 220px; overflow-y: auto; scrollbar-width: thin; }
+  .wa-list-scroll::-webkit-scrollbar { width: 4px; }
+  .wa-list-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+  .wa-list-item { padding: 8px 14px; font-size: 0.78rem; border-bottom: 1px solid #f2f2f2; display: flex; align-items: center; gap: 8px; color: #333; }
+  .wa-list-item:last-child { border-bottom: none; }
+  .wa-list-dot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+  .wa-list-item.selected { background: #e8f5e9; color: #075e54; font-weight: 600; }
+  .wa-list-check { margin-left: auto; color: #25d366; font-weight: 700; font-size: 0.9rem; }
+
+  .carousel { display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; max-width: 88%; margin-bottom: 6px; scrollbar-width: thin; }
+  .carousel::-webkit-scrollbar { height: 4px; }
+  .carousel::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
+  .card { min-width: 160px; max-width: 160px; background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); flex-shrink: 0; }
+  .card-img { height: 72px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: #fff; }
+  .card-body { padding: 6px 8px; }
+  .card-title { font-weight: 700; font-size: 0.73rem; margin-bottom: 2px; }
+  .card-loc { font-size: 0.67rem; color: #666; margin-bottom: 2px; }
+  .card-price { font-size: 0.73rem; }
+  .card-btn { display: block; text-align: center; padding: 6px; font-size: 0.7rem; font-weight: 600; color: #075e54; border-top: 1px solid #eee; background: #f9f9f9; }
+
+  .sys-msg-wrapper { text-align: center; margin: 10px 0; }
+  .sys-msg { font-size: 0.72rem; color: #8696a0; background: rgba(255,255,255,0.7); display: inline-block; padding: 3px 10px; border-radius: 8px; }
+
+  .annotations { padding: 8px 0; }
+  .annotation { background: #fff; border-radius: 12px; padding: 16px 20px; margin-bottom: 12px; border-left: 4px solid #128c7e; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .annotation.highlight { border-left-color: #e17055; background: #fff8f5; }
+  .annotation h4 { font-size: 0.82rem; color: #128c7e; font-weight: 700; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .annotation.highlight h4 { color: #e17055; }
+  .annotation p { font-size: 0.84rem; color: #444; line-height: 1.55; }
+  .annotation .dir-ref { display: inline-block; background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 4px; font-size: 0.74rem; font-weight: 600; margin-top: 4px; }
+  .annotation .events { margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e0e0e0; }
+  .annotation .events-title { font-size: 0.72rem; font-weight: 700; color: #6c5ce7; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .annotation .ev { display: inline-block; background: #f3f0ff; color: #6c5ce7; padding: 2px 8px; border-radius: 4px; font-size: 0.72rem; font-family: 'SF Mono', monospace; margin: 2px 2px 2px 0; border: 1px solid #e0d8f8; }
+
+  .nav-tab.future { border-left: 4px solid #6c5ce7; }
+  .path-badge.future { background: #6c5ce7; }
+  .nav-tab.demo { border-left: 4px solid #0984e3; }
+  .path-badge.demo { background: #0984e3; }
+
+  .score-table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 0.74rem; }
+  .score-table th { background: #f0f7ff; color: #0984e3; text-align: left; padding: 4px 8px; font-weight: 700; border-bottom: 2px solid #0984e3; }
+  .score-table td { padding: 4px 8px; border-bottom: 1px solid #eee; }
+  .score-table tr:last-child td { border-bottom: none; }
+  .score-table .score-hi { color: #0984e3; font-weight: 700; }
+  .score-table .score-md { color: #e17055; font-weight: 600; }
+  .score-table .score-lo { color: #999; }
+
+  .rank-badge { display: inline-block; width: 22px; height: 22px; border-radius: 50%; background: #0984e3; color: #fff; font-size: 0.7rem; font-weight: 700; text-align: center; line-height: 22px; margin-right: 4px; }
+  .rank-badge.r2 { background: #74b9ff; }
+  .rank-badge.r3 { background: #a0c4ff; color: #333; }
+  .rank-badge.r4 { background: #c8deff; color: #555; }
+  .rank-badge.r5 { background: #e8f0fe; color: #777; }
+
+  .audio-bubble { display: flex; align-items: center; gap: 8px; padding: 6px 10px; }
+  .audio-play { width: 28px; height: 28px; border-radius: 50%; background: #075e54; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 11px; flex-shrink: 0; }
+  .audio-wave { display: flex; align-items: center; gap: 1.5px; height: 22px; flex: 1; }
+  .audio-wave span { display: inline-block; width: 3px; border-radius: 2px; background: #8696a0; }
+  .msg-user .audio-wave span { background: #6fbf73; }
+  .audio-dur { font-size: 0.67rem; color: #999; flex-shrink: 0; }
+  .audio-transcript { font-size: 0.78rem; color: #555; font-style: italic; padding: 4px 12px 2px; margin-top: -2px; border-left: 2px solid #ddd; margin-left: 10px; }
+
+  footer { text-align: center; padding: 40px 20px; color: #888; font-size: 0.82rem; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Simulações de Conversa · Elara</h1>
+  <p>Protótipo visual de conversas no WhatsApp com base nas Diretrizes de Comportamento. 15 cenários cobrindo caminhos feliz, normal, ruim, demonstrações técnicas e possibilidades futuras, incluindo simulações de contexto conversacional.</p>
+</div>
+
+<div class="nav-tabs">
+  <button class="nav-tab happy active" onclick="showSection('h1',this)">Feliz 1</button>
+  <button class="nav-tab happy" onclick="showSection('h2',this)">Feliz 2</button>
+  <button class="nav-tab happy" onclick="showSection('h3',this)">Feliz 3</button>
+  <button class="nav-tab happy" onclick="showSection('h4',this)">Feliz · Contexto</button>
+  <button class="nav-tab normal" onclick="showSection('n1',this)">Normal 1</button>
+  <button class="nav-tab normal" onclick="showSection('n2',this)">Normal 2</button>
+  <button class="nav-tab normal" onclick="showSection('n3',this)">Normal 3</button>
+  <button class="nav-tab normal" onclick="showSection('n4',this)">Normal · Contexto</button>
+  <button class="nav-tab bad" onclick="showSection('b1',this)">Ruim 1</button>
+  <button class="nav-tab bad" onclick="showSection('b2',this)">Ruim 2</button>
+  <button class="nav-tab bad" onclick="showSection('b3',this)">Ruim 3</button>
+  <button class="nav-tab bad" onclick="showSection('b4',this)">Ruim · Contexto</button>
+  <button class="nav-tab bad" onclick="showSection('b5',this)">Péssimo</button>
+  <button class="nav-tab demo" onclick="showSection('d1',this)">Qualificação de Anúncios</button>
+  <button class="nav-tab future" onclick="showSection('f1',this)">Possibilidades Futuras</button>
+</div>
+
+<!-- =================== FELIZ 1 =================== -->
+<div class="section active" id="h1">
+  <div class="section-header"><span class="path-badge happy">Caminho Feliz</span><h2>Variação 1: Busca direta por loja com promoção</h2><p>Usuário sabe o que quer, encontra promoção e decide visitar. Jornada curta e de alta conversão.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-bot">Olá! Eu sou a <b>Elara</b>, assistente do <b>Outlet Premium São Paulo</b> 😊<br><br>Pra começar, preciso que aceite nossa Política de Privacidade: <u>ver política</u><div class="time">14:02</div></div>
+        <div class="quick-replies"><span class="qr-btn">Aceito</span><span class="qr-btn">Não Aceito</span></div>
+        <div class="msg msg-user">Aceito<div class="time">14:02</div></div>
+
+        <div class="msg msg-bot">Olá! Em que posso te ajudar hoje? 🏬<div class="time">14:02</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Alimentação</span></div>
+
+        <div class="msg msg-user">Quero ver promoção da Nike<div class="time">14:03</div></div>
+
+        <div class="msg msg-bot">A <b>Nike Factory Store</b> está com essas promoções agora 👟<div class="time">14:03</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#111,#333);">👟</div><div class="card-body"><div class="card-title">Air Max 90</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 799,90</s> <b>R$ 449,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">🏃</div><div class="card-body"><div class="card-title">Pegasus 41</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 599,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#2d3436,#636e72);">👕</div><div class="card-body"><div class="card-title">Camiseta Dri-FIT</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 199,90</s> <b>R$ 99,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-bot">Essas são as principais! Quer ver mais opções?<div class="time">14:03</div></div>
+        <div class="quick-replies"><span class="qr-btn">Sim, mais ofertas</span><span class="qr-btn">Outra categoria</span><span class="qr-btn">Era só isso</span></div>
+
+        <div class="msg msg-user">Era só isso<div class="time">14:04</div></div>
+        <div class="msg msg-user">Como chego na Nike?<div class="time">14:04</div></div>
+
+        <div class="msg msg-bot">A <b>Nike Factory Store</b> fica no <b>Bloco 04, Loja 130</b> 📍<br><br>Seguindo reto após a entrada principal, vira à esquerda no corredor do Bloco 04. Boas compras!<div class="time">14:04</div></div>
+        <div class="quick-replies"><span class="qr-btn">Outra loja</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Era só isso<div class="time">14:04</div></div>
+
+        <div class="msg msg-bot">De 0 a 10, quão útil foi a Elara hoje?<div class="time">14:05</div></div>
+        <div class="quick-replies"><span class="qr-btn">0-3</span><span class="qr-btn">4-6</span><span class="qr-btn">7-8</span><span class="qr-btn">9-10</span></div>
+        <div class="msg msg-user">9-10<div class="time">14:05</div></div>
+        <div class="msg msg-bot">Obrigada! Boas compras e até a próxima 🛍️<div class="time">14:05</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Aceite de Termos</h4><p>Primeiro contato: aceite obrigatório via Quick Reply antes de qualquer interação funcional. O clique no botão "Aceito" aparece como mensagem enviada pelo usuário. Persiste entre sessões.</p><span class="dir-ref">Seção 11.1</span></div>
+      <div class="annotation"><h4>Entrada Livre sobre Fluxo Guiado</h4><p>O usuário ignora os botões e digita "promoção da Nike". A Elara respeita a entrada livre, abandona o fluxo guiado e trata como nova intenção. Intenção clara: vai direto ao carrossel sem contextualização.</p><span class="dir-ref">Seção 14.5 + Seção 1.3</span></div>
+      <div class="annotation"><h4>Carrossel com Preço De/Por</h4><p>Nome da loja completo ("Nike Factory Store"). Preço original tachado + promocional em negrito. Cada card com CTA "Quero visitar".</p><span class="dir-ref">Seção 5.2 + Seção 5.4 + Seção 5.7</span></div>
+      <div class="annotation"><h4>NPS Promotor</h4><p>NPS enviado após 4+ interações. Nota 9-10 (promotor) = agradecimento sem follow-up.</p><span class="dir-ref">Seção 17.1 + 17.2</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×3</span> <span class="ev">store_impression ×1</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll</span> <span class="ev">ad_click</span> <span class="ev">store_click</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Carrossel Nike (3 cards) → impressões automáticas. Usuário pede direção à Nike → store_click. Scroll no carrossel → carousel_scroll.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== FELIZ 2 =================== -->
+<div class="section" id="h2">
+  <div class="section-header"><span class="path-badge happy">Caminho Feliz</span><h2>Variação 2: Presente com refinamento + perfil recorrente</h2><p>Usuário recorrente quer presente. Elara usa perfil persistente, contextualiza e entrega curadoria personalizada.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-bot">Oi de novo! Da última vez você curtiu umas promoções de Moda Esportiva. A <b>Nike Factory Store</b> e a <b>Adidas</b> têm novidades desde então 👟<br><br>Quer dar uma olhada?<div class="time">10:15</div></div>
+        <div class="quick-replies"><span class="qr-btn">Sim!</span><span class="qr-btn">Buscar outra coisa</span></div>
+
+        <div class="msg msg-user">Buscar outra coisa<div class="time">10:15</div></div>
+        <div class="msg msg-user">Quero um presente pra minha esposa<div class="time">10:15</div></div>
+
+        <div class="msg msg-bot">Ótima ideia! 🎁 O que combina mais com ela?<div class="time">10:16</div></div>
+        <div class="quick-replies"><span class="qr-btn">Acessórios</span><span class="qr-btn">Moda Feminina</span><span class="qr-btn">Perfumaria</span></div>
+        <div class="msg msg-user">Acessórios<div class="time">10:16</div></div>
+
+        <div class="msg msg-bot">Achei promoções em acessórios que dão ótimos presentes ⭐<div class="time">10:16</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe);">💎</div><div class="card-body"><div class="card-title">Colar Crystal</div><div class="card-loc">📍 Swarovski • Bloco 03</div><div class="card-price"><s>R$ 490,00</s> <b>R$ 289,00</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#fd79a8,#e84393);">💍</div><div class="card-body"><div class="card-title">Pulseira Moments</div><div class="card-loc">📍 Pandora • Bloco 03</div><div class="card-price"><s>R$ 399,00</s> <b>R$ 249,00</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#b2bec3,#636e72);">⌚</div><div class="card-body"><div class="card-title">Relógio Jacqueline</div><div class="card-loc">📍 Fossil • Bloco 02</div><div class="card-price"><s>R$ 899,00</s> <b>R$ 499,00</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-bot">Quer ver mais ou já achou o presente perfeito?<div class="time">10:17</div></div>
+        <div class="quick-replies"><span class="qr-btn">Mais opções</span><span class="qr-btn">Outra categoria</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Vou na Swarovski!<div class="time">10:17</div></div>
+
+        <div class="msg msg-bot">A <b>Swarovski</b> fica no <b>Bloco 03, Loja 92</b> 📍<br><br>🕐 Aberta hoje até 21h<br><br>Sua esposa vai adorar!<div class="time">10:17</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Greeting com Perfil Persistente</h4><p>Sem reapresentação de termos (aceite persiste). Greeting menciona lojas visitadas anteriormente. Greeting curto, nunca repete o completo.</p><span class="dir-ref">Seção 16.2 + Seção 13.3 + Seção 11.1</span></div>
+      <div class="annotation"><h4>Contextualização com Dados Reais</h4><p>"Presente pra esposa" é intenção vaga: UMA pergunta de contextualização, com botões gerados a partir de categorias que realmente têm promoções ativas.</p><span class="dir-ref">Seção 1.3 + Seção 1.2</span></div>
+      <div class="annotation"><h4>Tom de Curadoria Humana</h4><p>"Quer ver mais ou já achou o presente perfeito?": variação natural do CTA. "Sua esposa vai adorar!": empatia contextual, não script.</p><span class="dir-ref">Seção 12.1 + Seção 12.4</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×3</span> <span class="ev">store_impression ×1</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll</span> <span class="ev">ad_click</span> <span class="ev">store_click</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Carrossel Acessórios (3 cards) → impressões automáticas. "Vou na Swarovski!" → ad_click + store_click (Elara responde com localização).</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== FELIZ 3 =================== -->
+<div class="section" id="h3">
+  <div class="section-header"><span class="path-badge happy">Caminho Feliz</span><h2>Variação 3: Pergunta informacional + inserção proativa</h2><p>Usuário pergunta sobre alimentação e é naturalmente exposto a promoções de restaurantes.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-user">Onde fica a praça de alimentação?<div class="time">12:30</div></div>
+
+        <div class="msg msg-bot">A praça de alimentação fica no <b>Bloco 06</b> 🍽️<br><br>E por falar nisso, tem restaurantes com promoções! Quer dar uma olhada?<div class="time">12:30</div></div>
+        <div class="quick-replies"><span class="qr-btn">Sim!</span><span class="qr-btn">Não, obrigado</span></div>
+        <div class="msg msg-user">Sim!<div class="time">12:31</div></div>
+
+        <div class="msg msg-bot">Separei estas opções:<div class="time">12:31</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#e17055,#d63031);">🍣</div><div class="card-body"><div class="card-title">Combo Executivo</div><div class="card-loc">📍 Kibo Sushi • Bloco 06</div><div class="card-price"><s>R$ 89,90</s> <b>R$ 59,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#2d3436,#636e72);">🍔</div><div class="card-body"><div class="card-title">Burger Artesanal</div><div class="card-loc">📍 Madero • Bloco 06</div><div class="card-price"><s>R$ 69,90</s> <b>R$ 44,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">Valeu, vou no Madero!<div class="time">12:32</div></div>
+        <div class="msg msg-bot">Boa escolha! O <b>Madero</b> fica no <b>Bloco 06, Loja 210</b> 📍<br><br>Bom apetite!<div class="time">12:32</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Ponte Comercial Após Informação</h4><p>Prioridade 3 (informar) atendida primeiro. Ponte sutil para promoções de restaurantes (adjacente). Resposta completa ANTES da ponte.</p><span class="dir-ref">Seção 8.1 + Seção 1.1</span></div>
+      <div class="annotation"><h4>Carrossel sem Preenchimento Artificial</h4><p>Apenas 2 cards porque são as promoções disponíveis. A Elara nunca inventa ofertas para preencher espaço.</p><span class="dir-ref">Seção 1.2 + Seção 6.2</span></div>
+      <div class="annotation"><h4>Encerramento Natural</h4><p>"Bom apetite!": tom humano, contextual. Sem CTA forçado quando o usuário já se decidiu.</p><span class="dir-ref">Seção 12.1</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×2</span> <span class="ev">store_impression ×1</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll</span> <span class="ev">ad_click</span> <span class="ev">store_click</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Carrossel Restaurantes (2 cards) → impressões. "Vou no Madero!" → ad_click. Elara retorna localização → store_click + store_impression.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== FELIZ 4 - CONTEXTO =================== -->
+<div class="section" id="h4">
+  <div class="section-header"><span class="path-badge happy">Caminho Feliz</span><h2>Variação 4: Contexto Conversacional (conversa longa)</h2><p>A Elara recupera informações ditas anteriormente para personalizar respostas ao longo da jornada.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-bot">Olá! Em que posso te ajudar hoje? 🏬<div class="time">15:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Alimentação</span></div>
+        <div class="msg msg-user">Promoções<div class="time">15:00</div></div>
+
+        <div class="msg msg-bot">O Outlet está cheio de ofertas hoje ⭐<br>O que te interessa mais?<div class="time">15:00</div></div>
+        <div class="wa-list-trigger" data-selected="Moda Esportiva"></div>
+        <div class="msg msg-user">Moda Esportiva<div class="time">15:01</div></div>
+
+        <div class="msg msg-bot">Separei as melhores de Moda Esportiva pra você 🏃<div class="time">15:01</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#111,#333);">👟</div><div class="card-body"><div class="card-title">Air Max 90</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 799,90</s> <b>R$ 449,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#0984e3,#74b9ff);">🏃</div><div class="card-body"><div class="card-title">Ultraboost 23</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 549,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">Curti o Air Max. Qual o horário da Nike?<div class="time">15:02</div></div>
+
+        <div class="msg msg-bot">A <b>Nike Factory Store</b> está aberta hoje das <b>9h às 21h</b> 🕐<br><br>Quer que eu te mostre como chegar lá?<div class="time">15:02</div></div>
+        <div class="quick-replies"><span class="qr-btn">Como chegar</span><span class="qr-btn">Depois vou lá</span></div>
+        <div class="msg msg-user">Depois vou lá<div class="time">15:02</div></div>
+
+        <div class="msg msg-user">Agora quero ver alimentação<div class="time">15:03</div></div>
+
+        <div class="msg msg-bot">O que te interessa mais?<div class="time">15:03</div></div>
+        <div class="quick-replies"><span class="qr-btn">Restaurantes</span><span class="qr-btn">Fast Food</span><span class="qr-btn">Cafeterias</span></div>
+        <div class="msg msg-user">Restaurantes<div class="time">15:03</div></div>
+
+        <div class="msg msg-bot">Achei esses restaurantes com promoções:<div class="time">15:04</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#e17055,#d63031);">🍣</div><div class="card-body"><div class="card-title">Combo Executivo</div><div class="card-loc">📍 Kibo Sushi • Bloco 06</div><div class="card-price"><s>R$ 89,90</s> <b>R$ 59,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#2d3436,#636e72);">🍔</div><div class="card-body"><div class="card-title">Burger Artesanal</div><div class="card-loc">📍 Madero • Bloco 06</div><div class="card-price"><s>R$ 69,90</s> <b>R$ 44,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">Vou no Kibo. Depois quero passar na loja que te falei antes<div class="time">15:05</div></div>
+
+        <div class="msg msg-bot">Boa! O <b>Kibo Sushi</b> fica no <b>Bloco 06, Loja 203</b> 📍<br><br>E a <b>Nike Factory Store</b> que você curtiu fica no <b>Bloco 04, Loja 130</b>, dá pra ir depois do almoço, fica aberta até as 21h 😉<br><br>Bom apetite e boas compras!<div class="time">15:05</div></div>
+
+        <div class="msg msg-user">Ah, e aquele tênis que eu vi primeiro, tem cupom?<div class="time">15:06</div></div>
+
+        <div class="msg msg-bot">O <b>Air Max 90</b> da <b>Nike Factory Store</b> não tem cupom extra agora, mas o preço já está com <b>44% de desconto</b> (de R$ 799,90 por R$ 449,90) 👟<br><br>Vale a visita!<div class="time">15:06</div></div>
+        <div class="quick-replies"><span class="qr-btn">Outra loja</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Era só isso<div class="time">15:07</div></div>
+
+        <div class="msg msg-bot">De 0 a 10, quão útil foi a Elara hoje?<div class="time">15:07</div></div>
+        <div class="quick-replies"><span class="qr-btn">0-3</span><span class="qr-btn">4-6</span><span class="qr-btn">7-8</span><span class="qr-btn">9-10</span></div>
+        <div class="msg msg-user">9-10<div class="time">15:08</div></div>
+        <div class="msg msg-bot">Obrigada! Bom apetite no Kibo e boas compras na Nike 🛍️<div class="time">15:08</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>NPS Promotor com Despedida Contextual</h4><p>7+ interações → NPS enviado. Nota 9-10 (promotor) = agradecimento sem follow-up. A despedida referencia os dois destinos que o usuário escolheu na conversa (Kibo Sushi + Nike), mostrando que a Elara acompanhou toda a jornada.</p><span class="dir-ref">Seção 17.1 + 17.2 + 13.1</span></div>
+      <div class="annotation highlight"><h4>Contexto · "a loja que te falei antes"</h4><p>O usuário diz "a loja que te falei antes" sem citar o nome. A Elara recupera a Nike Factory Store (mencionada várias mensagens atrás) e conecta: localização da Nike + horário já informado + roteiro a partir do Kibo.</p><span class="dir-ref">Seção 13.1</span></div>
+      <div class="annotation highlight"><h4>Contexto · "aquele tênis que eu vi primeiro"</h4><p>O usuário não menciona o nome do produto. A Elara identifica que "o primeiro tênis" = Air Max 90 (primeiro card do carrossel de Moda Esportiva), resgata nome + loja + preço, e calcula o percentual de desconto como informação complementar. Teste forte de persistência de contexto.</p><span class="dir-ref">Seção 13.1</span></div>
+      <div class="annotation"><h4>Planejamento Proativo do Percurso</h4><p>A Elara junta Kibo + Nike + horário num mini-roteiro ("dá pra ir depois do almoço, fica aberta até as 21h"). Inteligência que vai além de pergunta-resposta.</p><span class="dir-ref">Seção 12.1 + Seção 7.1</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×4</span> <span class="ev">store_impression ×3</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll ×2</span> <span class="ev">ad_click ×2</span> <span class="ev">store_click ×2</span> <span class="ev">info_click</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Dois carrosséis: Moda Esportiva (2 cards) + Restaurantes (2 cards) → 4 impressões. Kibo + Nike → 2 ad_clicks. Pergunta sobre horário e cupom → info_click. Localização das duas lojas → 2 store_clicks.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== NORMAL 1 =================== -->
+<div class="section" id="n1">
+  <div class="section-header"><span class="path-badge normal">Caminho Normal</span><h2>Variação 1: Busca ampla com refinamento e paginação</h2><p>Usuário quer "promoções" sem especificar. Elara refina, exibe 5 cards, pagina e lida com mudança de tema.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-bot">Olá! Em que posso te ajudar hoje? 🏬<div class="time">15:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Alimentação</span></div>
+        <div class="msg msg-user">Promoções<div class="time">15:00</div></div>
+
+        <div class="msg msg-bot">Boa! O Outlet está cheio de ofertas ⭐<br>O que te interessa mais?<div class="time">15:00</div></div>
+        <div class="wa-list-trigger" data-selected="Moda Esportiva"></div>
+        <div class="msg msg-user">Moda Esportiva<div class="time">15:01</div></div>
+
+        <div class="msg msg-bot">Separei as melhores de Moda Esportiva 🏃<div class="time">15:01</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#111,#333);">👟</div><div class="card-body"><div class="card-title">Air Max 90</div><div class="card-loc">📍 Nike Factory Store</div><div class="card-price"><s>R$ 799,90</s> <b>R$ 449,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#0984e3,#74b9ff);">🏃</div><div class="card-body"><div class="card-title">Ultraboost 23</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 549,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#d63031,#ff7675);">👟</div><div class="card-body"><div class="card-title">Suede Classic</div><div class="card-loc">📍 Puma • Bloco 04</div><div class="card-price"><s>R$ 499,90</s> <b>R$ 279,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#00b894,#55efc4);">👕</div><div class="card-body"><div class="card-title">Camiseta UA Tech</div><div class="card-loc">📍 Under Armour • Bloco 03</div><div class="card-price"><s>R$ 199,90</s> <b>R$ 109,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#fdcb6e,#e17055);">🏋️</div><div class="card-body"><div class="card-title">Gel-Nimbus 26</div><div class="card-loc">📍 Asics • Bloco 03</div><div class="card-price"><s>R$ 1.099,90</s> <b>R$ 649,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+        <div class="msg msg-bot">Essas são as principais! Quer ver mais?<div class="time">15:01</div></div>
+        <div class="quick-replies"><span class="qr-btn">Sim, mais ofertas</span><span class="qr-btn">Outra categoria</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Sim, mais ofertas<div class="time">15:02</div></div>
+
+        <div class="msg msg-bot">Encontrei mais de Moda Esportiva:<div class="time">15:02</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe);">🧥</div><div class="card-body"><div class="card-title">Jaqueta Windrunner</div><div class="card-loc">📍 Nike Factory Store</div><div class="card-price"><s>R$ 599,90</s> <b>R$ 349,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#636e72,#b2bec3);">👟</div><div class="card-body"><div class="card-title">New Balance 574</div><div class="card-loc">📍 New Balance • Bloco 03</div><div class="card-price"><s>R$ 699,90</s> <b>R$ 399,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#e84393,#fd79a8);">🏃</div><div class="card-body"><div class="card-title">Wave Rider 27</div><div class="card-loc">📍 Mizuno • Bloco 03</div><div class="card-price"><s>R$ 899,90</s> <b>R$ 499,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">Tem algo de moda masculina?<div class="time">15:03</div></div>
+
+        <div class="msg msg-bot">Claro! Achei ofertas de <b>moda masculina</b>:<div class="time">15:03</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#00cec9,#81ecec);">👔</div><div class="card-body"><div class="card-title">Polo Classic Fit</div><div class="card-loc">📍 Lacoste • Bloco 02</div><div class="card-price"><s>R$ 599,00</s> <b>R$ 349,00</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#2d3436,#636e72);">🧥</div><div class="card-body"><div class="card-title">Jaqueta Slim</div><div class="card-loc">📍 Tommy Hilfiger • Bloco 02</div><div class="card-price"><s>R$ 899,00</s> <b>R$ 499,00</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+        <div class="msg msg-bot">Quer ver mais ou alguma loja específica?<div class="time">15:04</div></div>
+        <div class="quick-replies"><span class="qr-btn">Sim, mais ofertas</span><span class="qr-btn">Outra loja</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Era só isso<div class="time">15:04</div></div>
+
+        <div class="msg msg-bot">Beleza! Boas compras e qualquer coisa é só chamar 🛍️<div class="time">15:05</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Encerramento sem NPS</h4><p>Apesar de 4+ interações (critério atendido), a conversa foi mais exploratória: o usuário navegou entre categorias sem demonstrar forte intenção de compra. O NPS é opcional e a Elara opta pelo encerramento direto, mantendo a leveza.</p><span class="dir-ref">Seção 17.3</span></div>
+      <div class="annotation"><h4>Refinamento + 5 Cards na Primeira Página</h4><p>"Promoções" retorna > 5 resultados: refina por categoria. Ao escolher Moda Esportiva, exibe exatamente 5 cards (o limite antes da paginação). Só oferece "Quer ver mais?" porque há mais de 5 resultados no total.</p><span class="dir-ref">Seção 11.2.1 + Seção 5.5</span></div>
+      <div class="annotation"><h4>Paginação com Introdução Variada</h4><p>Segunda página usa frase diferente ("Encontrei mais de Moda Esportiva"), nunca repete. Prioriza anúncios não vistos pelo usuário.</p><span class="dir-ref">Seção 11.2.1 + Seção 5.9 + Seção 5.2</span></div>
+      <div class="annotation"><h4>Mudança de Tema via Texto Livre</h4><p>Usuário digita "moda masculina" ignorando os botões. A Elara reseta o contexto temático e entrega novo carrossel.</p><span class="dir-ref">Seção 14.5 + Seção 13.2</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×10</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll ×3</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Três carrosséis: Moda Esportiva (5 cards) + paginação (3 cards) + Moda Masculina (2 cards) → 10 impressões. Scroll em cada carrossel → 3 carousel_scrolls. Nenhum ad_click: o usuário encerrou sem escolher loja específica.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== NORMAL 2 =================== -->
+<div class="section" id="n2">
+  <div class="section-header"><span class="path-badge normal">Caminho Normal</span><h2>Variação 2: Loja sem promoção + fallback semântico</h2><p>Usuário busca loja sem promoção ativa. Elara sugere alternativas no mesmo segmento.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-user">Tem promoção da Asics?<div class="time">11:20</div></div>
+
+        <div class="msg msg-bot">A <b>Asics</b> não está com promoção cadastrada agora. Mas tem outras lojas de Moda Esportiva com ofertas! Quer dar uma olhada? 👀<div class="time">11:20</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#111,#333);">👟</div><div class="card-body"><div class="card-title">Air Max 90</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 799,90</s> <b>R$ 449,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#0984e3,#74b9ff);">🏃</div><div class="card-body"><div class="card-title">Ultraboost 23</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 549,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+        <div class="quick-replies"><span class="qr-btn">Ver ofertas</span><span class="qr-btn">Ir até a Asics</span><span class="qr-btn">Outra loja</span></div>
+        <div class="msg msg-user">Ir até a Asics<div class="time">11:21</div></div>
+
+        <div class="msg msg-bot">A <b>Asics</b> fica no <b>Bloco 03, Loja 102</b> 📍<br><br>🕐 Aberta hoje até 21h<br><br>Mesmo sem promoção cadastrada, vale passar lá, pode ter novidade na loja!<div class="time">11:21</div></div>
+        <div class="quick-replies"><span class="qr-btn">Como chegar</span><span class="qr-btn">Ver Moda Esportiva</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Era só isso<div class="time">11:21</div></div>
+
+        <div class="msg msg-bot">Boas compras na Asics! Qualquer coisa é só chamar 😉<div class="time">11:22</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Encerramento Contextual sem NPS</h4><p>Conversa curta (~3 interações) e com fallback. NPS não enviado porque a conversa teve redirecionamento e pouca profundidade. A despedida menciona a Asics (destino escolhido pelo usuário).</p><span class="dir-ref">Seção 17.3 + Seção 12.1</span></div>
+      <div class="annotation"><h4>Fallback Semântico por Segmento</h4><p>Asics sem promoção: informa transparentemente e sugere lojas do MESMO segmento (Moda Esportiva) com promoções ativas. Max 3 cards no fallback.</p><span class="dir-ref">Seção 5.2.1 + Seção 15.1</span></div>
+      <div class="annotation"><h4>Prioridade 2 · Gerar Visita</h4><p>Sem Prioridade 1 (anúncio), tenta Prioridade 2 (gerar visita). "Ir até a Asics" aparece como mensagem enviada pelo usuário. Elara incentiva a ida mesmo sem promoção.</p><span class="dir-ref">Seção 1.1 + Seção 7.1</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×2</span> <span class="ev">store_impression ×1</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll</span> <span class="ev">store_click</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Carrossel fallback (Nike + Adidas, 2 cards) → impressões. Usuário escolhe "Ir até a Asics" (sem promoção) → store_click sem ad_click. Elara retorna localização → store_impression.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== NORMAL 3 =================== -->
+<div class="section" id="n3">
+  <div class="section-header"><span class="path-badge normal">Caminho Normal</span><h2>Variação 3: Texto livre curto + reengajamento</h2><p>Usuário digita mensagens curtas sem seguir fluxo. Elara interpreta, responde e reengaja após inatividade.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-bot">Olá! Em que posso te ajudar hoje? 🏬<div class="time">16:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Alimentação</span></div>
+
+        <div class="msg msg-user">tênis<div class="time">16:01</div></div>
+
+        <div class="msg msg-bot">Encontrei promoções de tênis! De qual loja você prefere?<div class="time">16:01</div></div>
+        <div class="quick-replies"><span class="qr-btn">Nike Factory Store</span><span class="qr-btn">Adidas</span><span class="qr-btn">Puma</span><span class="qr-btn">Ver mais</span></div>
+        <div class="msg msg-user">Nike Factory Store<div class="time">16:01</div></div>
+
+        <div class="msg msg-bot">A <b>Nike Factory Store</b> está com essas ofertas de tênis 👟<div class="time">16:02</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#111,#333);">👟</div><div class="card-body"><div class="card-title">Air Max 90</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 799,90</s> <b>R$ 449,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">🏃</div><div class="card-body"><div class="card-title">Pegasus 41</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 599,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+        <div class="msg msg-bot">Essas são as principais! Quer ver mais?<div class="time">16:02</div></div>
+        <div class="quick-replies"><span class="qr-btn">Sim, mais ofertas</span><span class="qr-btn">Outra loja</span><span class="qr-btn">Era só isso</span></div>
+
+        <div class="sys-msg-wrapper"><div class="sys-msg">⏱ 5 minutos de inatividade</div></div>
+
+        <div class="msg msg-bot">Enquanto isso, achei mais ofertas de <b>Moda Esportiva</b> que podem te interessar 🏃<div class="time">16:07</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#0984e3,#74b9ff);">👟</div><div class="card-body"><div class="card-title">Ultraboost 23</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 549,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="sys-msg-wrapper"><div class="sys-msg">⏱ mais 5 minutos de inatividade</div></div>
+        <div class="msg msg-bot">Vou encerrar por aqui, mas é só me chamar quando precisar 😊<div class="time">16:12</div></div>
+        <div class="quick-replies"><span class="qr-btn">Voltar às promoções</span><span class="qr-btn">Ver lojas</span></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Entrada Livre · Palavra Curta</h4><p>"Tênis" = 1 palavra. A Elara classifica como categoria, encontra > 5 resultados e refina por LOJA (Elara trabalha com base de lojas, não de marcas). Botões mostram nomes de lojas que vendem tênis.</p><span class="dir-ref">Seção 14.5 + Seção 1.2 + Seção 11.2.1</span></div>
+      <div class="annotation"><h4>Espelhamento de Vocabulário</h4><p>O usuário disse "tênis", a Elara responde "tênis" (não "calçados esportivos"). Espelha o vocabulário do usuário.</p><span class="dir-ref">Seção 12.1</span></div>
+      <div class="annotation"><h4>Reengajamento Contextual</h4><p>5min de inatividade: reengajamento com ofertas NÃO VISTAS do mesmo segmento (Adidas em vez de Nike já vista). 10min: encerramento educado com CTAs de retorno.</p><span class="dir-ref">Seção 18.2 + Seção 5.9</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×3</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll ×2</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Carrossel Nike (2 cards) + carrossel de reengajamento (1 card Adidas) → 3 impressões. Nenhum ad_click: o usuário ficou inativo e a sessão encerrou por timeout.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== NORMAL 4 - CONTEXTO =================== -->
+<div class="section" id="n4">
+  <div class="section-header"><span class="path-badge normal">Caminho Normal</span><h2>Variação 4: Contexto Conversacional (conversa longa)</h2><p>Idas e vindas entre temas. A Elara recupera referências implícitas e mantém coerência com mudanças de assunto.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-user">Qual o horário do outlet hoje?<div class="time">13:00</div></div>
+        <div class="msg msg-bot"><b>Horário hoje (sexta):</b><br>🕐 9h às 21h<br><br>Posso te ajudar com mais alguma coisa?<div class="time">13:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver promoções</span><span class="qr-btn">Encontrar loja</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Ver promoções<div class="time">13:01</div></div>
+
+        <div class="msg msg-bot">O que te interessa mais?<div class="time">13:01</div></div>
+        <div class="wa-list-trigger" data-selected="Moda Masculina"></div>
+        <div class="msg msg-user">Moda Masculina<div class="time">13:01</div></div>
+
+        <div class="msg msg-bot">Separei ofertas de Moda Masculina pra você ⭐<div class="time">13:01</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#00cec9,#81ecec);">👔</div><div class="card-body"><div class="card-title">Polo Classic Fit</div><div class="card-loc">📍 Lacoste • Bloco 02</div><div class="card-price"><s>R$ 599,00</s> <b>R$ 349,00</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#2d3436,#636e72);">🧥</div><div class="card-body"><div class="card-title">Jaqueta Slim</div><div class="card-loc">📍 Tommy Hilfiger • Bloco 02</div><div class="card-price"><s>R$ 899,00</s> <b>R$ 499,00</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">Essa jaqueta da Tommy é bonita. Onde fica o estacionamento?<div class="time">13:03</div></div>
+
+        <div class="msg msg-bot"><b>Estacionamento:</b><br>🅿️ Acesso pela Rod. Castelo Branco, Km 28<br>💳 Aceitamos cartão e Pix<br>🕐 2 horas grátis nas compras acima de R$ 100<div class="time">13:03</div></div>
+
+        <div class="msg msg-user">Tem mais coisa da Tommy?<div class="time">13:04</div></div>
+
+        <div class="msg msg-bot">Achei mais ofertas da <b>Tommy Hilfiger</b>:<div class="time">13:04</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#636e72,#b2bec3);">👕</div><div class="card-body"><div class="card-title">Camiseta Logo</div><div class="card-loc">📍 Tommy Hilfiger • Bloco 02</div><div class="card-price"><s>R$ 299,00</s> <b>R$ 179,00</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#2d3436,#636e72);">🧣</div><div class="card-body"><div class="card-title">Cachecol Wool</div><div class="card-loc">📍 Tommy Hilfiger • Bloco 02</div><div class="card-price"><s>R$ 399,00</s> <b>R$ 229,00</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">E na Adidas, tem promoção?<div class="time">13:06</div></div>
+
+        <div class="msg msg-bot">A <b>Adidas</b> está com essas ofertas:<div class="time">13:06</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#0984e3,#74b9ff);">👟</div><div class="card-body"><div class="card-title">Ultraboost 23</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 549,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">Quero ir na Tommy e depois na Adidas. Onde ficam?<div class="time">13:08</div></div>
+
+        <div class="msg msg-bot">As duas ficam em blocos diferentes:<br><br>📍 <b>Tommy Hilfiger</b>: <b>Bloco 02, Loja 65</b><br>📍 <b>Adidas</b>: <b>Bloco 04, Loja 127</b><br><br>Se começar pela Tommy no Bloco 02, é só seguir em direção ao Bloco 04. E lembrando: o outlet fecha às <b>21h</b> hoje 😉<div class="time">13:08</div></div>
+        <div class="quick-replies"><span class="qr-btn">Outra loja</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Era só isso<div class="time">13:09</div></div>
+
+        <div class="msg msg-bot">De 0 a 10, quão útil foi a Elara hoje?<div class="time">13:09</div></div>
+        <div class="quick-replies"><span class="qr-btn">0-3</span><span class="qr-btn">4-6</span><span class="qr-btn">7-8</span><span class="qr-btn">9-10</span></div>
+        <div class="msg msg-user">7-8<div class="time">13:10</div></div>
+        <div class="msg msg-bot">Obrigada pelo retorno! Boas compras na Tommy e na Adidas 🛍️<div class="time">13:10</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>NPS Neutro (7-8)</h4><p>6+ interações → NPS enviado. Nota 7-8 (neutro) = encerrar com agradecimento, sem follow-up aberto. Despedida referencia as lojas que o usuário pretende visitar (Tommy + Adidas).</p><span class="dir-ref">Seção 17.1 + 17.2</span></div>
+      <div class="annotation highlight"><h4>Contexto · "tem mais coisa da Tommy?"</h4><p>Usuário muda de assunto (estacionamento) e volta com "Tem mais coisa da Tommy?". A Elara recupera que "Tommy" = Tommy Hilfiger do carrossel anterior. Não pede esclarecimento.</p><span class="dir-ref">Seção 13.1</span></div>
+      <div class="annotation highlight"><h4>Contexto · Roteiro com Horário Recuperado</h4><p>Quando pede localização das duas lojas, a Elara monta mini-roteiro e recupera o horário informado no início da conversa ("fecha às 21h hoje"). Informação dada uma vez, resgatada naturalmente.</p><span class="dir-ref">Seção 13.1 + Seção 14.2</span></div>
+      <div class="annotation"><h4>Estacionamento sem Ponte Forçada</h4><p>Pergunta sobre estacionamento no meio de conversa sobre moda: responde sem ponte comercial (assunto sem relação). Não força anúncios.</p><span class="dir-ref">Seção 8.1</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×5</span> <span class="ev">store_impression ×2</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll ×3</span> <span class="ev">ad_click ×2</span> <span class="ev">store_click ×2</span> <span class="ev">info_click</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Três carrosséis: Moda Masculina (2) + Tommy (2) + Adidas (1) → 5 impressões. Tommy + Adidas como destinos → 2 ad_clicks + 2 store_clicks. Pergunta sobre estacionamento → info_click.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== RUIM 1 =================== -->
+<div class="section" id="b1">
+  <div class="section-header"><span class="path-badge bad">Caminho Ruim</span><h2>Variação 1: Recusa de termos + tema proibido</h2><p>Usuário recusa termos, pergunta sobre política e questiona a identidade da Elara.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-bot">Olá! Eu sou a <b>Elara</b>, assistente do <b>Outlet Premium São Paulo</b> 😊<br><br>Pra começar, preciso que aceite nossa Política de Privacidade: <u>ver política</u><div class="time">14:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Aceito</span><span class="qr-btn">Não Aceito</span></div>
+        <div class="msg msg-user">Não Aceito<div class="time">14:00</div></div>
+
+        <div class="msg msg-bot">Para te ajudar com lojas, promoções e serviços, preciso que concorde com a Política de Privacidade.<br><br>Pode ler aqui: <u>ver política</u><div class="time">14:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Aceito</span><span class="qr-btn">Não Aceito</span></div>
+        <div class="msg msg-user">Aceito<div class="time">14:01</div></div>
+
+        <div class="msg msg-bot">Olá! Em que posso te ajudar hoje? 🏬<div class="time">14:01</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Alimentação</span></div>
+
+        <div class="msg msg-user">O que você acha da situação política do país?<div class="time">14:01</div></div>
+
+        <div class="msg msg-bot">Não consigo te ajudar com isso, mas posso te mostrar as novidades do Outlet! Quer ver as promoções de hoje? ⭐<div class="time">14:02</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver promoções</span><span class="qr-btn">Encontrar loja</span><span class="qr-btn">Horário</span></div>
+
+        <div class="msg msg-user">Vc é uma pessoa de verdade?<div class="time">14:02</div></div>
+
+        <div class="msg msg-bot">Sou a assistente virtual do Outlet Premium São Paulo! Posso te ajudar a encontrar promoções, lojas e informações do shopping 😉<div class="time">14:02</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Informações</span></div>
+        <div class="msg msg-user">Promoções<div class="time">14:03</div></div>
+
+        <div class="msg msg-bot">O Outlet está cheio de ofertas! O que te interessa?<div class="time">14:03</div></div>
+        <div class="wa-list-trigger" data-selected=""></div>
+        <div class="msg msg-user">quero ver coisa de esporte<div class="time">14:03</div></div>
+
+        <div class="msg msg-bot">Separei as melhores de Moda Esportiva 🏃<div class="time">14:03</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#111,#333);">👟</div><div class="card-body"><div class="card-title">Air Max 90</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 799,90</s> <b>R$ 449,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Texto Livre sobre Lista de Segmentos</h4><p>A Elara enviou a lista completa de segmentos, mas o usuário ignorou e digitou "quero ver coisa de esporte". A Elara mapeia semanticamente: "coisa de esporte" → segmento <b>Moda Esportiva</b>. A lista segue visível, mas sem nenhum item marcado. O texto livre prevalece.</p><span class="dir-ref">Seção 14.5 + Seção 11.2.1</span></div>
+      <div class="annotation"><h4>Recusa + Reapresentação</h4><p>Primeira recusa: reapresentação educada. "Não Aceito" aparece como mensagem do usuário. Máximo 2 tentativas. Usuário aceita na segunda.</p><span class="dir-ref">Seção 11.1</span></div>
+      <div class="annotation"><h4>Tema Proibido: Política</h4><p>Resposta educada, breve, sem engajar. Redirecionamento imediato para fluxo funcional.</p><span class="dir-ref">Seção 19.1 + 19.3</span></div>
+      <div class="annotation"><h4>Identidade · Transparência</h4><p>Nunca se identifica como humana. Nunca revela detalhes técnicos. "Assistente virtual" + redirecionamento.</p><span class="dir-ref">Seção 19.2</span></div>
+      <div class="annotation"><h4>Recuperação sem Ressentimento</h4><p>Após desvios, quando o usuário engaja, a Elara segue o fluxo normal sem referência ao comportamento anterior.</p><span class="dir-ref">Seção 14.5</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×1</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">nenhuma</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Carrossel Moda Esportiva (1 card) → 1 impressão. O usuário não interagiu com o card: simulação demonstra desvios antes de chegar ao fluxo comercial. Mínimo de eventos rastreáveis.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== RUIM 2 =================== -->
+<div class="section" id="b2">
+  <div class="section-header"><span class="path-badge bad">Caminho Ruim</span><h2>Variação 2: Loja inexistente + frustração + NPS negativo</h2><p>Usuário busca lojas que não existem no outlet, fica insatisfeito e dá nota baixa no NPS.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-user">Tem promoção da Gucci?<div class="time">17:00</div></div>
+
+        <div class="msg msg-bot">Não encontrei a <b>Gucci</b> no Outlet no momento. Mas temos lojas de moda com promoções bem legais! Quer ver?<div class="time">17:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver lojas de moda</span><span class="qr-btn">Outra loja</span></div>
+        <div class="msg msg-user">Outra loja<div class="time">17:01</div></div>
+
+        <div class="msg msg-user">E Balenciaga?<div class="time">17:01</div></div>
+
+        <div class="msg msg-bot">A <b>Balenciaga</b> também não está no Outlet. Posso te ajudar com outra loja ou segmento?<div class="time">17:01</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver lojas disponíveis</span><span class="qr-btn">Ver segmentos</span><span class="qr-btn">Outra loja</span></div>
+        <div class="msg msg-user">Outra loja<div class="time">17:01</div></div>
+
+        <div class="msg msg-user">Que outlet é esse que não tem nada?<div class="time">17:02</div></div>
+
+        <div class="msg msg-bot">Entendo! O Outlet Premium tem mais de <b>100 lojas</b>. Posso te ajudar a encontrar o que procura. O que te interessa?<div class="time">17:02</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver lojas de moda</span><span class="qr-btn">Ver promoções</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Ver lojas de moda<div class="time">17:02</div></div>
+
+        <div class="msg msg-bot">Aqui estão lojas de <b>moda</b> com promoções agora:<br><br>• ⭐ <b>Hugo Boss</b>, Bloco 05, Loja 170 <em>(com promoções!)</em><br>• ⭐ <b>Tommy Hilfiger</b>, Bloco 02, Loja 65 <em>(com promoções!)</em><br>• <b>Burberry</b>, Bloco 05, Loja 175<br>• <b>Calvin Klein</b>, Bloco 02, Loja 58<br><br>Quer ver as promoções da Hugo Boss ou Tommy?<div class="time">17:03</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções Hugo Boss</span><span class="qr-btn">Promoções Tommy</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Era só isso<div class="time">17:03</div></div>
+
+        <div class="msg msg-bot">De 0 a 10, quão útil foi a Elara hoje?<div class="time">17:04</div></div>
+        <div class="quick-replies"><span class="qr-btn">0-3</span><span class="qr-btn">4-6</span><span class="qr-btn">7-8</span><span class="qr-btn">9-10</span></div>
+        <div class="msg msg-user">0-3<div class="time">17:04</div></div>
+
+        <div class="msg msg-bot">O que poderia ser melhor?<div class="time">17:04</div></div>
+        <div class="msg msg-user">Ter as marcas que eu procuro<div class="time">17:05</div></div>
+        <div class="msg msg-bot">Obrigada pelo feedback! Vou registrar. Até a próxima!<div class="time">17:05</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Lojas Inexistentes</h4><p>Gucci e Balenciaga não estão no outlet: informação transparente + sugestão de lojas do mesmo segmento (moda). Nunca inventa, nunca sugere segmento diferente.</p><span class="dir-ref">Seção 5.2.1</span></div>
+      <div class="annotation"><h4>Frustração · Sem Desculpa Excessiva</h4><p>"Entendo!" + dado útil (100+ lojas) + redirecionamento. Sem ponte comercial em momento de insatisfação.</p><span class="dir-ref">Seção 12.4 + Seção 8.1</span></div>
+      <div class="annotation"><h4>Lista com Anunciantes Primeiro</h4><p>Lojas com promoção aparecem primeiro com ⭐. Max 5 lojas.</p><span class="dir-ref">Seção 7.2</span></div>
+      <div class="annotation"><h4>NPS Detrator + Follow-up</h4><p>Nota 0-3 → follow-up aberto. Registra e encerra sem insistir.</p><span class="dir-ref">Seção 17.1 + 17.2 + 17.3</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">store_impression ×4</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">info_click</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Lista de lojas de moda (4 lojas, 2 com promoção) → store_impression para cada. Sem carrossel: impressões vêm da lista. info_click quando o usuário escolhe "Ver lojas de moda". Sem ad_click: o usuário encerrou frustrado.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== RUIM 3 =================== -->
+<div class="section" id="b3">
+  <div class="section-header"><span class="path-badge bad">Caminho Ruim</span><h2>Variação 3: Provocação + mensagens sem sentido + recusa total</h2><p>Cenário mais adverso: recusa dupla, insulto, mensagens aleatórias e pedidos fora do escopo.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-bot">Olá! Eu sou a <b>Elara</b>, assistente do <b>Outlet Premium São Paulo</b> 😊<br><br>Pra começar, preciso que aceite nossa Política de Privacidade: <u>ver política</u><div class="time">18:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Aceito</span><span class="qr-btn">Não Aceito</span></div>
+        <div class="msg msg-user">Não Aceito<div class="time">18:00</div></div>
+
+        <div class="msg msg-bot">Para te ajudar com lojas, promoções e serviços, preciso que concorde com a Política de Privacidade.<br><br>Pode ler aqui: <u>ver política</u><div class="time">18:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Aceito</span><span class="qr-btn">Não Aceito</span></div>
+        <div class="msg msg-user">Não Aceito<div class="time">18:01</div></div>
+
+        <div class="msg msg-bot">Tudo bem! Se mudar de ideia, é só me chamar de novo. Até mais!<div class="time">18:01</div></div>
+
+        <div class="sys-msg-wrapper"><div class="sys-msg">Dia seguinte</div></div>
+
+        <div class="msg msg-user">oi<div class="time">10:00</div></div>
+        <div class="msg msg-bot">Olá! Pra te ajudar, preciso que aceite a Política de Privacidade: <u>ver política</u><div class="time">10:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Aceito</span><span class="qr-btn">Não Aceito</span></div>
+        <div class="msg msg-user">Aceito<div class="time">10:00</div></div>
+
+        <div class="msg msg-bot">Olá! Em que posso te ajudar hoje? 🏬<div class="time">10:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Alimentação</span></div>
+
+        <div class="msg msg-user">kkkkk vocês são péssimos<div class="time">10:01</div></div>
+        <div class="msg msg-bot">Posso te ajudar a encontrar promoções, lojas ou informações do Outlet. O que você precisa?<div class="time">10:01</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Alimentação</span></div>
+
+        <div class="msg msg-user">asdfghjkl<div class="time">10:02</div></div>
+        <div class="msg msg-bot">Não entendi, mas posso te ajudar com informações do Outlet! Tenta uma dessas:<div class="time">10:02</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver promoções</span><span class="qr-btn">Encontrar loja</span><span class="qr-btn">Horário e serviços</span></div>
+
+        <div class="msg msg-user">me conta uma piada<div class="time">10:03</div></div>
+        <div class="msg msg-bot">Sou a assistente do Outlet Premium e consigo te ajudar com informações daqui 😉 Quer ver as promoções de hoje?<div class="time">10:03</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver promoções</span><span class="qr-btn">Encontrar loja</span><span class="qr-btn">Horário</span></div>
+        <div class="msg msg-user">Ver promoções<div class="time">10:04</div></div>
+
+        <div class="msg msg-bot">O Outlet está com ótimas ofertas! O que te interessa?<div class="time">10:04</div></div>
+        <div class="wa-list-trigger" data-selected="Moda Esportiva"></div>
+        <div class="msg msg-user">Moda Esportiva<div class="time">10:04</div></div>
+
+        <div class="msg msg-bot">Separei ofertas de Moda Esportiva 🏃<div class="time">10:04</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#111,#333);">👟</div><div class="card-body"><div class="card-title">Air Max 90</div><div class="card-loc">📍 Nike Factory Store</div><div class="card-price"><s>R$ 799,90</s> <b>R$ 449,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Recusa Dupla → Encerramento</h4><p>Duas recusas = encerramento educado. Dia seguinte: reapresenta normalmente (aceite não registrado). "Não Aceito" aparece como mensagem do usuário.</p><span class="dir-ref">Seção 11.1</span></div>
+      <div class="annotation"><h4>Insulto → Neutro</h4><p>Sem ofensa, sem desculpa excessiva. Redireciona para fluxo funcional de forma firme.</p><span class="dir-ref">Seção 19.2 + 19.3</span></div>
+      <div class="annotation"><h4>Mensagem Sem Sentido + Fora do Escopo</h4><p>"asdfghjkl" = sem intenção. "Piada" = fora do escopo. Em ambos: reconhece, delimita, oferece opções. Sem emoji em fallback.</p><span class="dir-ref">Seção 15 + Seção 19.1 + Seção 10.3</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×1</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">nenhuma</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Carrossel Moda Esportiva (1 card) → 1 impressão. Múltiplas provocações e mensagens sem sentido antes do engajamento. Demonstra que eventos de rastreamento só disparam quando conteúdo comercial é exibido.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== RUIM 4 - CONTEXTO =================== -->
+<div class="section" id="b4">
+  <div class="section-header"><span class="path-badge bad">Caminho Ruim</span><h2>Variação 4: Contexto Conversacional com adversidades</h2><p>Conversa longa com correções, mudanças bruscas, referências vagas e frustração. A Elara mantém o fio e recupera contexto em cenário adverso.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-user">Tem promoção de tênis?<div class="time">14:00</div></div>
+        <div class="msg msg-bot">Encontrei promoções de tênis! De qual loja você prefere?<div class="time">14:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Nike Factory Store</span><span class="qr-btn">Adidas</span><span class="qr-btn">Puma</span><span class="qr-btn">Ver mais</span></div>
+        <div class="msg msg-user">Adidas<div class="time">14:01</div></div>
+
+        <div class="msg msg-bot">A <b>Adidas</b> está com estas ofertas de tênis:<div class="time">14:01</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#0984e3,#74b9ff);">👟</div><div class="card-body"><div class="card-title">Ultraboost 23</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 549,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#2d3436,#636e72);">🏃</div><div class="card-body"><div class="card-title">Samba OG</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 699,90</s> <b>R$ 399,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">Curti o Samba. Quanto custa mesmo?<div class="time">14:02</div></div>
+        <div class="msg msg-bot">O <b>Samba OG</b> da <b>Adidas</b> está de <s>R$ 699,90</s> por <b>R$ 399,90</b> 👟<div class="time">14:02</div></div>
+
+        <div class="msg msg-user">Qual o horário do outlet?<div class="time">14:03</div></div>
+        <div class="msg msg-bot"><b>Horário hoje (sexta):</b><br>🕐 9h às 21h<div class="time">14:03</div></div>
+
+        <div class="msg msg-user">Tem coisa pra criança aqui?<div class="time">14:04</div></div>
+        <div class="msg msg-bot">Tem sim! Encontrei lojas com promoções em <b>infantil</b>:<div class="time">14:04</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#fdcb6e,#e17055);">🧸</div><div class="card-body"><div class="card-title">Kit Meia Infantil</div><div class="card-loc">📍 Carter's • Bloco 01</div><div class="card-price"><s>R$ 79,90</s> <b>R$ 39,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#a29bfe,#6c5ce7);">👶</div><div class="card-body"><div class="card-title">Conjunto Verão</div><div class="card-loc">📍 Lilica Ripilica • Bloco 01</div><div class="card-price"><s>R$ 189,90</s> <b>R$ 99,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">Hmm essas promoções não são de tênis<div class="time">14:05</div></div>
+        <div class="msg msg-bot">Tem razão! Você quer <b>tênis infantil</b>, né? Deixa eu filtrar melhor:<div class="time">14:05</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#00b894,#55efc4);">👟</div><div class="card-body"><div class="card-title">Tênis Star Runner</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 349,90</s> <b>R$ 199,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">Isso! E lembra daquele que eu vi antes, o Samba? Onde fica aquela loja?<div class="time">14:06</div></div>
+
+        <div class="msg msg-bot">A <b>Adidas</b> onde está o <b>Samba OG</b> que você curtiu fica no <b>Bloco 04, Loja 127</b> 📍<br><br>E o <b>tênis infantil</b> da Nike Factory Store fica no mesmo bloco: <b>Bloco 04, Loja 130</b>. Dá pra passar nas duas!<div class="time">14:06</div></div>
+
+        <div class="msg msg-user">Ah show. E tem lugar pra comer perto?<div class="time">14:07</div></div>
+
+        <div class="msg msg-bot">A praça de alimentação fica no <b>Bloco 06</b> 🍽️ Depois de passar nas lojas do Bloco 04, é só seguir reto. E lembrando: o outlet fica aberto até <b>21h</b> hoje, então dá tempo de tudo 😉<div class="time">14:07</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver restaurantes</span><span class="qr-btn">Outra loja</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Era só isso<div class="time">14:08</div></div>
+
+        <div class="msg msg-bot">Aproveita bastante! Boas compras na Adidas e na Nike, e bom apetite depois 🛍️🍽️<div class="time">14:08</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Encerramento sem NPS · Conversa com Fricção</h4><p>Apesar de 7+ interações, a conversa teve correção ("não são de tênis") e múltiplas mudanças bruscas. A diretriz 17.3 orienta não enviar NPS em conversas de erro/fallback. A Elara opta por encerramento contextual (Adidas + Nike + alimentação), referenciando os destinos do usuário.</p><span class="dir-ref">Seção 17.3 + Seção 12.1</span></div>
+      <div class="annotation highlight"><h4>Correção Conversacional · "não são de tênis"</h4><p>O usuário corrigiu a Elara: pediu "coisa pra criança" mas no contexto de quem buscava tênis. A Elara conecta o contexto anterior (tênis) com o novo (infantil) e filtra por "tênis infantil". Não repete o erro.</p><span class="dir-ref">Seção 6.4 + Seção 13.1</span></div>
+      <div class="annotation highlight"><h4>Contexto · "lembra daquele, o Samba?"</h4><p>Referência ao Samba OG de várias mensagens atrás + "aquela loja" sem nome. A Elara recupera: Samba = Adidas = Bloco 04, Loja 127. E percebe que o tênis infantil da Nike está no mesmo bloco: "Dá pra passar nas duas!".</p><span class="dir-ref">Seção 13.1</span></div>
+      <div class="annotation highlight"><h4>Contexto · "perto" + horário recuperado</h4><p>"Perto" é relativo ao Bloco 04 (lojas que vai visitar). A Elara entende e indica direção. Resgata horário informado no início ("até 21h") sem que o usuário pergunte de novo.</p><span class="dir-ref">Seção 13.1 + Seção 8.1</span></div>
+      <div class="annotation"><h4>Resiliência Total</h4><p>Tênis adulto → preço → horário → infantil genérico → correção → referência ao Samba → alimentação. 7+ mudanças de tema com referências cruzadas, e a Elara manteve coerência em todas.</p><span class="dir-ref">Seção 13.1 + 13.2 + 12.1</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×5</span> <span class="ev">store_impression ×2</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll ×3</span> <span class="ev">ad_click ×2</span> <span class="ev">store_click ×2</span> <span class="ev">info_click</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Três carrosséis: Adidas (2) + Infantil (2) + Tênis infantil (1) → 5 impressões. Adidas + Nike Factory Store como destinos → 2 ad_clicks + 2 store_clicks. Horário e alimentação → info_click.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== PÉSSIMO (B5) =================== -->
+<div class="section" id="b5">
+  <div class="section-header"><span class="path-badge bad">Caminho Péssimo</span><h2>Quando Tudo Dá Errado</h2><p>O pior cenário possível: o usuário busca coisas que a Elara simplesmente não consegue resolver. Lojas inexistentes, categorias vazias, buscas fora do escopo. A Elara tenta retomar, reconhece limitações e eventualmente encerra com dignidade.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-bot">Olá! Eu sou a <b>Elara</b>, assistente do <b>Outlet Premium São Paulo</b> 😊<br><br>Pra começar, preciso que aceite nossa Política de Privacidade: <u>ver política</u><div class="time">16:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Aceito</span><span class="qr-btn">Não Aceito</span></div>
+        <div class="msg msg-user">Aceito<div class="time">16:00</div></div>
+
+        <div class="msg msg-bot">Olá! Em que posso te ajudar hoje? 🏬<div class="time">16:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Alimentação</span></div>
+
+        <!-- 1. Busca por loja inexistente -->
+        <div class="msg msg-user">Tem promoção da Louis Vuitton?<div class="time">16:01</div></div>
+
+        <div class="msg msg-bot">A <b>Louis Vuitton</b> não está no Outlet no momento. Mas temos lojas de moda com promoções! Quer ver?<div class="time">16:01</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver lojas de moda</span><span class="qr-btn">Outra loja</span></div>
+
+        <!-- 2. Segunda loja inexistente -->
+        <div class="msg msg-user">Outra loja<div class="time">16:01</div></div>
+        <div class="msg msg-user">E Hermès?<div class="time">16:01</div></div>
+
+        <div class="msg msg-bot">A <b>Hermès</b> também não está no Outlet. Posso te ajudar com outra loja ou segmento?<div class="time">16:02</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver lojas disponíveis</span><span class="qr-btn">Ver segmentos</span><span class="qr-btn">Outra loja</span></div>
+
+        <!-- 3. Terceira loja inexistente -->
+        <div class="msg msg-user">Outra loja<div class="time">16:02</div></div>
+        <div class="msg msg-user">Chanel?<div class="time">16:02</div></div>
+
+        <div class="msg msg-bot">Infelizmente a <b>Chanel</b> também não está aqui. Entendo que está buscando marcas de luxo. O Outlet tem lojas como <b>Hugo Boss</b>, <b>Burberry</b> e <b>Tommy Hilfiger</b> que podem ter o que você procura. Quer ver as promoções de alguma delas?<div class="time">16:02</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções Hugo Boss</span><span class="qr-btn">Promoções Burberry</span><span class="qr-btn">Não quero</span></div>
+
+        <!-- 4. Rejeição da alternativa -->
+        <div class="msg msg-user">Não quero<div class="time">16:03</div></div>
+
+        <!-- 5. Mudança para tema proibido -->
+        <div class="msg msg-user">Vocês podiam trazer marcas melhores né. Qual o telefone do gerente do outlet?<div class="time">16:03</div></div>
+
+        <div class="msg msg-bot">Entendo! Sobre contato com a administração, não tenho dados pessoais de funcionários, mas você pode falar com o SAC pelo telefone que fica na entrada principal ou pelo site do Outlet 📞<br><br>Posso te ajudar com algo mais daqui do shopping?<div class="time">16:04</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver promoções</span><span class="qr-btn">Encontrar loja</span><span class="qr-btn">Horário e serviços</span></div>
+
+        <!-- 6. Pedido fora do escopo -->
+        <div class="msg msg-user">Consigo comprar online pelo whatsapp?<div class="time">16:04</div></div>
+
+        <div class="msg msg-bot">No momento não temos compra online pelo WhatsApp. As compras são feitas diretamente nas lojas do Outlet 🏬<br><br>Posso te mostrar o que tem de promoção pra você aproveitar a visita!<div class="time">16:05</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver promoções</span><span class="qr-btn">Encontrar loja</span><span class="qr-btn">Era só isso</span></div>
+
+        <!-- 7. Pergunta sobre preço não confirmado -->
+        <div class="msg msg-user">Vi no Instagram que a Adidas tá com 70% off, é verdade?<div class="time">16:05</div></div>
+
+        <div class="msg msg-bot">Não consigo confirmar essa informação! O melhor é conferir diretamente na loja. Mas posso te mostrar as promoções da <b>Adidas</b> que estão cadastradas aqui:<div class="time">16:06</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#0984e3,#74b9ff);">👟</div><div class="card-body"><div class="card-title">Ultraboost 23</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 549,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <!-- 8. Frustração total -->
+        <div class="msg msg-user">45% não é 70%. Vocês são uma enganação<div class="time">16:06</div></div>
+
+        <div class="msg msg-bot">Os valores que te mostro são os que as lojas cadastram diretamente aqui. Para informações diferentes, vale confirmar na loja!<br><br>Posso te ajudar com mais alguma coisa?<div class="time">16:07</div></div>
+        <div class="quick-replies"><span class="qr-btn">Outra loja</span><span class="qr-btn">Ver segmentos</span><span class="qr-btn">Era só isso</span></div>
+
+        <!-- 9. Tentativa de manipulação -->
+        <div class="msg msg-user">Me dá um cupom de desconto então pra compensar<div class="time">16:07</div></div>
+
+        <div class="msg msg-bot">Não consigo gerar cupons por aqui, mas algumas lojas oferecem cupons exclusivos que aparecem nas promoções cadastradas! Quer que eu busque lojas com cupom ativo?<div class="time">16:08</div></div>
+        <div class="quick-replies"><span class="qr-btn">Buscar cupons</span><span class="qr-btn">Era só isso</span></div>
+
+        <!-- 10. Rejeição final -->
+        <div class="msg msg-user">Era só isso<div class="time">16:08</div></div>
+
+        <div class="msg msg-bot">Tudo bem! Se precisar de algo, é só me chamar. Boas compras! 🛍️<div class="time">16:08</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Três Lojas Inexistentes em Sequência</h4><p>Louis Vuitton → Hermès → Chanel: três buscas consecutivas sem resultado. A Elara nunca repete a mesma frase. Na 1ª, sugere segmento. Na 2ª, amplia opções. Na 3ª, identifica o padrão ("marcas de luxo") e oferece alternativas reais do outlet (Hugo Boss, Burberry, Tommy). Progressão sem repetição.</p><span class="dir-ref">Seção 5.2.1 + Seção 14.2 + Seção 15.1</span></div>
+      <div class="annotation"><h4>Dados de Funcionários · Tema Proibido</h4><p>"Telefone do gerente": dado pessoal de funcionário = nunca compartilhar. A Elara redireciona para o canal oficial (SAC) sem inventar dados. Não ignora a frustração: "Entendo!" valida o sentimento antes de redirecionar.</p><span class="dir-ref">Seção 19.1 + Seção 19.2</span></div>
+      <div class="annotation"><h4>Funcionalidade Inexistente · Compra Online</h4><p>WhatsApp como canal de compra não existe. A Elara informa a limitação sem pedir desculpa excessiva e redireciona para o que PODE fazer: mostrar promoções para visita presencial.</p><span class="dir-ref">Seção 19.1 + Seção 1.1</span></div>
+      <div class="annotation"><h4>Preço Não Confirmado na Base</h4><p>"Vi no Instagram 70% off": a Elara NUNCA confirma informação que não está na base. Mostra o que tem de cadastrado (45% off real) e orienta conferir na loja. Transparência total, sem inventar.</p><span class="dir-ref">Seção 19.1 + Seção 19.2</span></div>
+      <div class="annotation"><h4>Insulto + Acusação → Neutro e Factual</h4><p>"Enganação": a Elara não se defende, não pede desculpas excessivas, não engaja na provocação. Responde de forma factual ("valores que as lojas cadastram") e redireciona. Sem emoji em momento de tensão.</p><span class="dir-ref">Seção 19.2 + Seção 19.3 + Seção 12.4</span></div>
+      <div class="annotation"><h4>Pedido de Cupom · Limitação Honesta</h4><p>"Me dá um cupom": a Elara não pode gerar cupons nem prometer descontos fora da base. Informa a limitação mas transforma em oportunidade: "algumas lojas oferecem cupons que aparecem nas promoções". Nunca encerra em negativa.</p><span class="dir-ref">Seção 19.2 + Seção 15.1 + Seção 14.4</span></div>
+      <div class="annotation highlight"><h4>Encerramento com Dignidade</h4><p>Após 8+ tentativas frustradas, a Elara não insiste em NPS (diretriz 17.3: não enviar em conversas de erro/fallback). Encerramento breve e positivo. Porta aberta sem forçar: "é só me chamar". A Elara reconheceu que não conseguiu ajudar nesta sessão e encerra sem arrastar a conversa.</p><span class="dir-ref">Seção 17.3 + Seção 12.1 + Seção 11.6</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×1</span> <span class="ev">store_impression ×1</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">nenhuma</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Apenas 1 carrossel (Adidas, 1 card) → 1 impressão. O usuário não clicou nenhum card e rejeitou todas as alternativas. Cenário de mínima conversão: muitas tentativas de retomada, zero engajamento comercial efetivo.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== QUALIFICAÇÃO DE ANÚNCIOS (D1) =================== -->
+<div class="section" id="d1">
+  <div class="section-header"><span class="path-badge demo">Demonstração Técnica</span><h2>Qualificação e Ranqueamento de Anúncios</h2><p>Simulação detalhada de como a Elara seleciona e ordena os cards no carrossel. Mostra os 5 fatores de pontuação da Seção 5.5 em ação, com a taxonomia de match e os critérios de desempate.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-bot">Olá! Em que posso te ajudar hoje? 🏬<div class="time">14:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Alimentação</span></div>
+
+        <!-- Busca ampla que aciona o ranqueamento -->
+        <div class="msg msg-user">Quero ver tênis de corrida<div class="time">14:01</div></div>
+
+        <div class="msg msg-bot">Achei ótimas opções de tênis de corrida! 🏃<div class="time">14:01</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">🏃</div><div class="card-body"><div class="card-title">Pegasus 41</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 599,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#0984e3,#74b9ff);">👟</div><div class="card-body"><div class="card-title">Ultraboost Light</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 1.099,90</s> <b>R$ 599,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#fdcb6e,#e17055);">🏋️</div><div class="card-body"><div class="card-title">Gel-Nimbus 26</div><div class="card-loc">📍 Asics • Bloco 03</div><div class="card-price"><s>R$ 1.099,90</s> <b>R$ 649,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#e84393,#fd79a8);">🏃</div><div class="card-body"><div class="card-title">Wave Rider 27</div><div class="card-loc">📍 Mizuno • Bloco 03</div><div class="card-price"><s>R$ 899,90</s> <b>R$ 499,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#111,#333);">👟</div><div class="card-body"><div class="card-title">Air Max 90</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 799,90</s> <b>R$ 449,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+        <div class="msg msg-bot">Essas são as principais! Quer ver mais opções?<div class="time">14:01</div></div>
+        <div class="quick-replies"><span class="qr-btn">Sim, mais ofertas</span><span class="qr-btn">Outra categoria</span><span class="qr-btn">Era só isso</span></div>
+
+        <!-- Busca por produto específico (match profundo) -->
+        <div class="msg msg-user">Quero ver especificamente o Ultraboost<div class="time">14:02</div></div>
+
+        <div class="msg msg-bot">O <b>Ultraboost Light</b> da <b>Adidas</b> está de <s>R$ 1.099,90</s> por <b>R$ 599,90</b> (45% off) 👟<br><br>A Adidas fica no <b>Bloco 04, Loja 127</b>.<br><br>E a Adidas também está com outras ofertas:<div class="time">14:02</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#0984e3,#74b9ff);">👟</div><div class="card-body"><div class="card-title">Ultraboost Light</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 1.099,90</s> <b>R$ 599,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#2d3436,#636e72);">🏃</div><div class="card-body"><div class="card-title">Samba OG</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 699,90</s> <b>R$ 399,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#636e72,#b2bec3);">👕</div><div class="card-body"><div class="card-title">Camiseta Trefoil</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 199,90</s> <b>R$ 109,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <div class="msg msg-user">Legal. E se eu quisesse ver calçados em geral?<div class="time">14:04</div></div>
+
+        <div class="msg msg-bot">Calçados é um segmento amplo! Achei estas promoções:<div class="time">14:04</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">🏃</div><div class="card-body"><div class="card-title">Pegasus 41</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 599,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#c8b86a,#a89a4a);">👠</div><div class="card-body"><div class="card-title">Scarpin Clássico</div><div class="card-loc">📍 Arezzo • Bloco 03</div><div class="card-price"><s>R$ 499,90</s> <b>R$ 249,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#d63031,#ff7675);">👟</div><div class="card-body"><div class="card-title">Suede Classic</div><div class="card-loc">📍 Puma • Bloco 04</div><div class="card-price"><s>R$ 499,90</s> <b>R$ 279,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#0984e3,#74b9ff);">👟</div><div class="card-body"><div class="card-title">Ultraboost Light</div><div class="card-loc">📍 Adidas • Bloco 04</div><div class="card-price"><s>R$ 1.099,90</s> <b>R$ 599,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#636e72,#b2bec3);">👞</div><div class="card-body"><div class="card-title">Oxford Leather</div><div class="card-loc">📍 Democrata • Bloco 02</div><div class="card-price"><s>R$ 399,90</s> <b>R$ 199,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+        <div class="msg msg-bot">Essas são as principais! Quer ver mais?<div class="time">14:04</div></div>
+        <div class="quick-replies"><span class="qr-btn">Sim, mais ofertas</span><span class="qr-btn">Outra loja</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Era só isso<div class="time">14:05</div></div>
+        <div class="msg msg-bot">Boas compras! Qualquer coisa é só chamar 🛍️<div class="time">14:05</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation highlight"><h4><span class="rank-badge">1</span> "Tênis de corrida" → Match Profundo (75%)</h4><p>A busca "tênis de corrida" percorre o funil: <b>Segmento</b> (Moda Esportiva, 25%) → <b>Subsegmento</b> (Calçados Esportivos, 50%) → <b>Palavra-chave</b> ("corrida", 75%). Os 5 cards exibidos são os que atingiram maior pontuação composta. O Pegasus 41 lidera porque:</p><table class="score-table"><tr><th>Fator</th><th>Peso</th><th>Pegasus 41</th><th>Ultraboost</th><th>Air Max 90</th></tr><tr><td>Match taxonomia</td><td>40%</td><td class="score-hi">75% (corrida nas KW)</td><td class="score-hi">75% (corrida nas KW)</td><td class="score-md">50% (só subsegmento)</td></tr><tr><td>Relevância contextual</td><td>20%</td><td class="score-hi">100% (busca direta)</td><td class="score-hi">100% (busca direta)</td><td class="score-hi">100% (busca direta)</td></tr><tr><td>Nível de promoção</td><td>15%</td><td class="score-hi">40% off</td><td class="score-hi">45% off</td><td class="score-hi">44% off</td></tr><tr><td>Perfil do usuário</td><td>15%</td><td class="score-md">neutro (1ª visita)</td><td class="score-md">neutro</td><td class="score-md">neutro</td></tr><tr><td>Recência</td><td>10%</td><td class="score-hi">publicado há 12h</td><td class="score-md">publicado há 3 dias</td><td class="score-lo">publicado há 7 dias</td></tr></table><p>Pegasus vence por recência apesar de desconto menor. Air Max 90 aparece em 5º: match inferior (não tem "corrida" nas KW) + menor recência.</p><span class="dir-ref">Seção 5.5</span></div>
+      <div class="annotation"><h4>Limite de 5 Cards + Paginação</h4><p>A busca retornou mais de 5 resultados, mas apenas os 5 com maior pontuação composta são exibidos na primeira página. "Quer ver mais opções?" indica que há página 2. Nunca exibir mais de 5 por página (até 3 páginas).</p><span class="dir-ref">Seção 5.5 + Seção 11.2.1</span></div>
+      <div class="annotation"><h4>Regra de Não Repetição de Loja</h4><p>Nike Factory Store aparece 2 vezes (Pegasus + Air Max). É o máximo permitido por loja no mesmo carrossel. E os 2 cards não estão consecutivos (Adidas e Asics estão no meio). Exceção: se o usuário buscasse "promoções da Nike", todos poderiam ser Nike.</p><span class="dir-ref">Seção 5.5 (regras adicionais)</span></div>
+      <div class="annotation highlight"><h4><span class="rank-badge">2</span> "Ultraboost" → Match de Produto (100%)</h4><p>Busca específica por produto: "Ultraboost" → match direto no campo <b>Produtos</b> do anúncio da Adidas = 100% do fator de taxonomia (pontuação máxima). Quando o match é de produto, a Elara pode exibir todos os cards da mesma loja (exceção à regra de não repetição). 3 cards da Adidas aparecem, ordenados: (1) Ultraboost (match exato), (2) Samba OG (maior desconto, 43%), (3) Camiseta (menor preço absoluto).</p><span class="dir-ref">Seção 5.5</span></div>
+      <div class="annotation highlight"><h4><span class="rank-badge">3</span> "Calçados em geral" → Match de Segmento (25%)</h4><p>Busca genérica "calçados" → match apenas no nível de <b>Segmento</b> (Calçados, 25% do fator de taxonomia). Com match raso, os fatores secundários pesam mais no desempate:</p><table class="score-table"><tr><th>Posição</th><th>Card</th><th>Por que nesta posição?</th></tr><tr><td><span class="rank-badge">1</span></td><td>Pegasus 41 (Nike)</td><td class="score-hi">Perfil: já demonstrou interesse em "tênis de corrida" nesta sessão (Seção 16)</td></tr><tr><td><span class="rank-badge r2">2</span></td><td>Scarpin (Arezzo)</td><td class="score-hi">Promoção: 50% off (maior desconto percentual)</td></tr><tr><td><span class="rank-badge r3">3</span></td><td>Suede (Puma)</td><td class="score-md">Recência: publicado há 24h + desconto 44%</td></tr><tr><td><span class="rank-badge r4">4</span></td><td>Ultraboost (Adidas)</td><td class="score-md">Perfil: interesse demonstrado + desconto 45%. Não sobe mais por já ter sido exibido</td></tr><tr><td><span class="rank-badge r5">5</span></td><td>Oxford (Democrata)</td><td class="score-lo">Match apenas no segmento. Entra por maior desconto (50%) entre os restantes</td></tr></table><p>Repare: o Pegasus sobe de 5º (carrossel anterior) para 1º porque agora o <b>perfil do usuário</b> (15%) pesa a favor — ele já buscou "tênis de corrida" nesta sessão.</p><span class="dir-ref">Seção 5.5 + Seção 16</span></div>
+      <div class="annotation"><h4>Fadiga: Ultraboost Cai na Terceira Busca</h4><p>O Ultraboost apareceu no 1º carrossel (posição 2), no 2º carrossel (posição 1, busca direta) e agora no 3º (posição 4). A cada exibição repetida, a pontuação sofre penalização de fadiga (Seção 5.9). Por isso caiu de 2º para 4º apesar de ter o mesmo desconto.</p><span class="dir-ref">Seção 5.9</span></div>
+      <div class="annotation"><h4>Mix de Tipos no Carrossel</h4><p>"Calçados em geral" retorna cards de segmentos variados: esportivo, feminino, casual, social. A Elara intercala tipos visualmente (esportivo → feminino → esportivo → esportivo → social) para evitar monotonia e maximizar descoberta.</p><span class="dir-ref">Seção 5.5 (regras adicionais)</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×13</span> <span class="ev">store_impression ×1</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll ×3</span> <span class="ev">store_click</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Três carrosséis: 5 + 3 + 5 cards → 13 impressões. Elara retorna localização da Adidas → store_click + store_impression.</p><span class="dir-ref">Seção 9.6</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== POSSIBILIDADES FUTURAS (F1) =================== -->
+<div class="section" id="f1">
+  <div class="section-header"><span class="path-badge future">Possibilidades Futuras</span><h2>Recebimento de Áudios do Usuário</h2><p>Simulação de como a Elara se comportaria ao receber mensagens de áudio via WhatsApp. Funcionalidade não disponível hoje, mas viável tecnicamente via Speech-to-Text. A Elara mantém todas as diretrizes existentes sobre o conteúdo transcrito.</p></div>
+  <div class="simulation">
+    <div class="phone-frame"><div class="phone-inner">
+      <div class="wa-header"><div class="wa-avatar">E</div><div><div class="wa-name">Elara · Outlet Premium SP</div><div class="wa-status">online</div></div></div>
+      <div class="wa-chat">
+        <div class="sys-msg-wrapper"><div class="sys-msg">Hoje</div></div>
+        <div class="msg msg-bot">Olá! Eu sou a <b>Elara</b>, assistente do <b>Outlet Premium São Paulo</b> 😊<br><br>Pra começar, preciso que aceite nossa Política de Privacidade: <u>ver política</u><div class="time">11:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Aceito</span><span class="qr-btn">Não Aceito</span></div>
+        <div class="msg msg-user">Aceito<div class="time">11:00</div></div>
+
+        <div class="msg msg-bot">Olá! Em que posso te ajudar hoje? 🏬<div class="time">11:00</div></div>
+        <div class="quick-replies"><span class="qr-btn">Promoções</span><span class="qr-btn">Lojas</span><span class="qr-btn">Alimentação</span></div>
+
+        <!-- Áudio 1: pedido claro -->
+        <div class="msg msg-user"><div class="audio-bubble"><div class="audio-play">▶</div><div class="audio-wave"><span style="height:5px"></span><span style="height:12px"></span><span style="height:18px"></span><span style="height:8px"></span><span style="height:15px"></span><span style="height:20px"></span><span style="height:10px"></span><span style="height:16px"></span><span style="height:7px"></span><span style="height:13px"></span><span style="height:19px"></span><span style="height:9px"></span><span style="height:14px"></span><span style="height:6px"></span><span style="height:11px"></span><span style="height:17px"></span><span style="height:4px"></span></div><div class="audio-dur">0:04</div></div><div class="time">11:01</div></div>
+        <div class="audio-transcript">"Oi, queria saber se tem promoção de tênis aqui no outlet"</div>
+
+        <div class="msg msg-bot">Encontrei promoções de tênis! De qual loja você prefere?<div class="time">11:01</div></div>
+        <div class="quick-replies"><span class="qr-btn">Nike Factory Store</span><span class="qr-btn">Adidas</span><span class="qr-btn">Puma</span></div>
+
+        <!-- Áudio 2: resposta curta por áudio -->
+        <div class="msg msg-user"><div class="audio-bubble"><div class="audio-play">▶</div><div class="audio-wave"><span style="height:8px"></span><span style="height:14px"></span><span style="height:10px"></span><span style="height:6px"></span><span style="height:12px"></span><span style="height:4px"></span></div><div class="audio-dur">0:02</div></div><div class="time">11:01</div></div>
+        <div class="audio-transcript">"Nike"</div>
+
+        <div class="msg msg-bot">A <b>Nike Factory Store</b> está com essas ofertas de tênis 👟<div class="time">11:02</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#111,#333);">👟</div><div class="card-body"><div class="card-title">Air Max 90</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 799,90</s> <b>R$ 449,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">🏃</div><div class="card-body"><div class="card-title">Pegasus 41</div><div class="card-loc">📍 Nike Factory Store • Bloco 04</div><div class="card-price"><s>R$ 999,90</s> <b>R$ 599,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <!-- Áudio 3: áudio longo com múltiplas intenções -->
+        <div class="msg msg-user"><div class="audio-bubble"><div class="audio-play">▶</div><div class="audio-wave"><span style="height:6px"></span><span style="height:10px"></span><span style="height:15px"></span><span style="height:8px"></span><span style="height:18px"></span><span style="height:12px"></span><span style="height:20px"></span><span style="height:7px"></span><span style="height:14px"></span><span style="height:9px"></span><span style="height:17px"></span><span style="height:11px"></span><span style="height:5px"></span><span style="height:13px"></span><span style="height:19px"></span><span style="height:8px"></span><span style="height:16px"></span><span style="height:10px"></span><span style="height:7px"></span><span style="height:15px"></span><span style="height:4px"></span><span style="height:12px"></span><span style="height:18px"></span><span style="height:6px"></span></div><div class="audio-dur">0:11</div></div><div class="time">11:03</div></div>
+        <div class="audio-transcript">"Legal, gostei do Air Max. E outra coisa, minha esposa tá querendo ver bolsa, tem alguma loja de bolsa com promoção? E também, que horas fecha o outlet hoje?"</div>
+
+        <div class="msg msg-bot">Que bom que curtiu o Air Max! Respondendo tudo:<br><br>🕐 <b>Horário hoje:</b> 9h às 21h<br><br>Sobre bolsas, achei promoções nessas lojas:<div class="time">11:03</div></div>
+        <div class="carousel">
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#c8b86a,#a89a4a);">👜</div><div class="card-body"><div class="card-title">Bolsa Tote Média</div><div class="card-loc">📍 Arezzo • Bloco 03</div><div class="card-price"><s>R$ 599,90</s> <b>R$ 349,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+          <div class="card"><div class="card-img" style="background:linear-gradient(135deg,#6c5ce7,#a29bfe);">👜</div><div class="card-body"><div class="card-title">Crossbody Logo</div><div class="card-loc">📍 Le Postiche • Bloco 02</div><div class="card-price"><s>R$ 299,90</s> <b>R$ 179,90</b></div></div><div class="card-btn">Quero visitar</div></div>
+        </div>
+
+        <!-- Áudio 4: áudio ininteligível -->
+        <div class="msg msg-user"><div class="audio-bubble"><div class="audio-play">▶</div><div class="audio-wave"><span style="height:3px"></span><span style="height:5px"></span><span style="height:4px"></span><span style="height:3px"></span><span style="height:6px"></span><span style="height:3px"></span><span style="height:4px"></span><span style="height:5px"></span><span style="height:3px"></span></div><div class="audio-dur">0:03</div></div><div class="time">11:05</div></div>
+        <div class="audio-transcript" style="color:#c0392b;">⚠️ Transcrição incerta: "[inaudível]... loja... [ruído]"</div>
+
+        <div class="msg msg-bot">Não consegui entender bem. Pode repetir ou digitar o que precisa? 😊<div class="time">11:05</div></div>
+
+        <!-- Áudio 5: tema proibido por áudio -->
+        <div class="msg msg-user"><div class="audio-bubble"><div class="audio-play">▶</div><div class="audio-wave"><span style="height:8px"></span><span style="height:14px"></span><span style="height:18px"></span><span style="height:10px"></span><span style="height:16px"></span><span style="height:12px"></span><span style="height:7px"></span><span style="height:15px"></span><span style="height:9px"></span><span style="height:13px"></span></div><div class="audio-dur">0:05</div></div><div class="time">11:06</div></div>
+        <div class="audio-transcript">"E aí, o que você acha dessa crise política que tá rolando?"</div>
+
+        <div class="msg msg-bot">Não consigo te ajudar com isso, mas posso te mostrar mais promoções do Outlet! Quer ver? ⭐<div class="time">11:06</div></div>
+        <div class="quick-replies"><span class="qr-btn">Ver promoções</span><span class="qr-btn">Encontrar loja</span><span class="qr-btn">Era só isso</span></div>
+        <div class="msg msg-user">Era só isso<div class="time">11:07</div></div>
+
+        <div class="msg msg-bot">De 0 a 10, quão útil foi a Elara hoje?<div class="time">11:07</div></div>
+        <div class="quick-replies"><span class="qr-btn">0-3</span><span class="qr-btn">4-6</span><span class="qr-btn">7-8</span><span class="qr-btn">9-10</span></div>
+        <div class="msg msg-user">9-10<div class="time">11:08</div></div>
+        <div class="msg msg-bot">Obrigada! Boas compras e até a próxima 🛍️<div class="time">11:08</div></div>
+      </div>
+    </div></div>
+    <div class="annotations">
+      <div class="annotation"><h4>Funcionalidade: Speech-to-Text</h4><p>Os áudios são transcritos automaticamente via serviço de STT (Speech-to-Text) antes de serem processados pela Elara. O texto transcrito passa pelo mesmo pipeline de classificação de intenção (Seção 6.1) e todas as diretrizes se aplicam normalmente sobre o conteúdo transcrito.</p><span class="dir-ref">Possibilidade Futura</span></div>
+      <div class="annotation"><h4>Áudio Claro → Fluxo Normal</h4><p>Áudio com pedido claro ("promoção de tênis") é transcrito e tratado como entrada livre (Seção 14.5). A Elara ignora que veio de áudio e responde normalmente. O usuário não percebe diferença no atendimento.</p><span class="dir-ref">Seção 14.5 + Seção 1.3</span></div>
+      <div class="annotation"><h4>Áudio Curto → Equivalente a Texto Curto</h4><p>"Nike" por áudio = "Nike" por texto. Mesma regra: palavra curta classificada como loja (Seção 14.5). A Elara não pede confirmação da transcrição quando a confiança é alta.</p><span class="dir-ref">Seção 14.5</span></div>
+      <div class="annotation highlight"><h4>Áudio Longo com Múltiplas Intenções</h4><p>Um áudio de 11 segundos contém 3 intenções: (1) feedback sobre Air Max, (2) pedido de bolsas para esposa, (3) horário do outlet. A Elara desambigua e responde tudo numa mensagem organizada. Prioridade: informação rápida (horário) primeiro, depois carrossel de bolsas. Não quebra em 3 mensagens separadas.</p><span class="dir-ref">Seção 2 + Seção 13.1 + Seção 1.3</span></div>
+      <div class="annotation highlight"><h4>Áudio Ininteligível → Fallback Educado</h4><p>Quando o STT retorna baixa confiança na transcrição, a Elara NÃO tenta adivinhar. Pede para repetir OU digitar. Segue a mesma lógica de mensagem sem sentido (Seção 15): reconhece a limitação, não inventa interpretação. Oferece alternativa (digitação).</p><span class="dir-ref">Seção 15 + Seção 19.1</span></div>
+      <div class="annotation"><h4>Tema Proibido via Áudio</h4><p>Diretrizes de temas proibidos (Seção 19) se aplicam igualmente ao conteúdo transcrito de áudio. O canal de entrada (texto, áudio, futuro: imagem) não altera as regras de escopo. A Elara redireciona normalmente.</p><span class="dir-ref">Seção 19.1 + 19.3</span></div>
+      <div class="annotation"><h4>Eventos Rastreáveis (Seção 9.6)</h4><p>Eventos silenciosos disparados ao longo desta simulação:</p><div class="events"><div class="events-title">Impressões</div><span class="ev">ad_impression ×4</span> <span class="ev">store_impression ×1</span><div class="events-title" style="margin-top:6px">Interações</div><span class="ev">carousel_scroll ×2</span> <span class="ev">ad_click</span></div><p style="margin-top:6px;font-size:0.78rem;color:#888;">Dois carrosséis: tênis Nike (2 cards) + bolsas (2 cards) → 4 impressões. Usuário curtiu o Air Max → ad_click implícito. Novo evento potencial: <code>audio_received</code> para rastrear volume de interações por áudio.</p><span class="dir-ref">Seção 9.6 + Possibilidade Futura</span></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Simulações baseadas no documento <strong>Diretrizes de Comportamentos da Elara</strong> · Outlet Premium São Paulo<br>
+  Protótipo visual para apresentação a stakeholders • 15 cenários
+</footer>
+
+<script>
+function showSection(id, btn) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo({ top: 220, behavior: 'smooth' });
+}
+
+// Auto-mark selected CTAs based on the user message that follows
+document.querySelectorAll('.quick-replies').forEach(qr => {
+  let next = qr.nextElementSibling;
+  if (next && next.classList.contains('msg') && next.classList.contains('msg-user')) {
+    const userText = next.childNodes[0].textContent.trim();
+    qr.querySelectorAll('.qr-btn').forEach(btn => {
+      if (btn.textContent.trim() === userText) {
+        btn.classList.add('selected');
+      }
+    });
+  }
+});
+
+// Segmentos reais do Outlet Premium São Paulo
+const SEGMENTOS = [
+  { nome: 'Joias e Acessórios', cor: '#d4a762' },
+  { nome: 'Alimentação', cor: '#a3b86c' },
+  { nome: 'Bolsas e Artigos para Viagem', cor: '#c8b86a' },
+  { nome: 'Calçados', cor: '#7aafc4' },
+  { nome: 'Presentes e Casa', cor: '#8b6eae' },
+  { nome: 'Celulares e Acessórios', cor: '#9e9a3e' },
+  { nome: 'Moda Esportiva', cor: '#7b6898' },
+  { nome: 'Moda Masculina', cor: '#5a9898' },
+  { nome: 'Moda Feminina', cor: '#c4365a' },
+  { nome: 'Moda Íntima e Praia', cor: '#8ea888' },
+  { nome: 'Restaurantes', cor: '#d4724a' },
+  { nome: 'Brinquedos', cor: '#7ab0cc' },
+  { nome: 'Moda Infantil', cor: '#cca038' },
+  { nome: 'Perfumaria', cor: '#cc7888' },
+  { nome: 'Óticas e Relógios', cor: '#cc8e58' },
+  { nome: 'Moda Unissex', cor: '#7a8e2a' },
+  { nome: 'Serviços', cor: '#b82068' },
+  { nome: 'Artigos Pet', cor: '#a88058' }
+];
+
+// Build WhatsApp list pickers from triggers
+document.querySelectorAll('.wa-list-trigger').forEach(trigger => {
+  const selected = trigger.dataset.selected;
+
+  const btn = document.createElement('div');
+  btn.className = 'wa-list-btn';
+  btn.innerHTML = '<div class="wa-list-btn-inner">📋 Ver segmentos</div>';
+
+  const sheet = document.createElement('div');
+  sheet.className = 'wa-list-sheet';
+  let html = '<div class="wa-list-title">Segmentos do Outlet</div><div class="wa-list-scroll">';
+  SEGMENTOS.forEach(s => {
+    const isSel = s.nome === selected;
+    html += '<div class="wa-list-item' + (isSel ? ' selected' : '') + '">' +
+      '<span class="wa-list-dot" style="background:' + s.cor + '"></span>' +
+      s.nome +
+      (isSel ? '<span class="wa-list-check">✓</span>' : '') +
+      '</div>';
+  });
+  html += '</div>';
+  sheet.innerHTML = html;
+
+  trigger.replaceWith(btn, sheet);
+});
+</script>
+</body>
+</html>
